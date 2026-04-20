@@ -1,0 +1,20 @@
+# This is a comment
+# Ignore specific files
+.vscode
+.DS_Store
+
+# Ignore all files with a specific extension
+# *.log
+# *.tmp
+
+# Ignore an entire directory (always end with a /)
+# node_modules/
+# dist/
+# build/
+
+# Ignore files in a specific folder but keep the folder
+# temp/*
+
+# Exception: Ignore all .log files BUT keep important.log
+# !important.log
+
