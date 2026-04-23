@@ -4,7 +4,6 @@ import static com.mongodb.MongoClientSettings.getDefaultCodecRegistry;
 import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
 import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 
-import java.util.ArrayList;
 import java.util.Vector;
 
 import org.bson.Document;
@@ -15,6 +14,7 @@ import com.jellingsen.games.echoes_of_unreality.Components.Character.NPC;
 import com.jellingsen.games.echoes_of_unreality.Components.Character.PlayableCharacter;
 import com.jellingsen.games.echoes_of_unreality.Components.Location.CompressedLocation;
 import com.jellingsen.games.echoes_of_unreality.Components.Location.Location;
+import com.jellingsen.games.echoes_of_unreality.Components.Location.LocationEnums.LocationType;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
@@ -56,7 +56,7 @@ public class DatabaseConnection {
         this.randomListsDatabase = this.mongoClient.getDatabase(randomListsDatabaseName).withCodecRegistry(pojoCodecRegistry); // lists for generation
         this.randomLocationNamesCollection = createOrGetCollection(this.randomListsDatabase, randomLocationNamesList);
         this.randomCharacterNamesCollection = createOrGetCollection(this.randomListsDatabase, randomCharacterNamesList);
-        // josh lots more
+        // josh lots more?
 
         this.locationsAndCharactersDatabase = this.mongoClient.getDatabase(locationsAndCharactersDatabaseName).withCodecRegistry(pojoCodecRegistry); // actual generated data
         this.locationsCollection = createOrGetCollection(this.locationsAndCharactersDatabase, locationsCollectionName);
@@ -87,6 +87,7 @@ public class DatabaseConnection {
     }
 
     public Location createNewLocationSave(Location location) { // creating a new location
+        System.out.println("  -->  saving location: " + location.name);
         String key = location.makeNameTypeKey();
         if (key == null) {
             System.out.println("Error: Location key is null.");
@@ -127,45 +128,101 @@ public class DatabaseConnection {
         return jsonMapper.readValue(tempDoc.toJson(), Location.class);
     }
 
-    public CompressedLocation getCompressedLocation(String key) {
-        CompressedLocation tempCompressedLocation = jsonMapper.readValue(this.locationsCollection
-        .find(Filters.eq("key", key))
-            .projection(new Document("name", 1)
-            .append("type", 1))
-        .first().toJson(), CompressedLocation.class);
+    // public CompressedLocation getCompressedLocation(String key) {
+    //     CompressedLocation tempCompressedLocation = jsonMapper.readValue(this.locationsCollection
+    //     .find(Filters.eq("key", key))
+    //         .projection(new Document("name", 1)
+    //         .append("type", 1))
+    //     .first().toJson(), CompressedLocation.class);
 
-        return tempCompressedLocation;
-    }
+    //     return tempCompressedLocation;
+    // }
 
-    public CompressedLocation getLocationsParent(String key) {
+    public CompressedLocation findExistingParent(CompressedLocation currentLoc) {
+        CompressedLocation existingParent = null;
+
         Document tempDoc = this.locationsCollection
-        .find(Filters.eq("key", key))
-            .projection(new Document("parent", 1))
+        .find(Filters.in("children", currentLoc))
+            .projection(new Document("type", 1).append("name", 1))
         .first();
-
-        // System.out.println("TempDoc for parent retrieval: " + tempDoc.toJson());
-        
-        CompressedLocation tempParent = jsonMapper.readValue(tempDoc.get("parent", Document.class).toJson(), CompressedLocation.class);
-        return tempParent;
-    }
-
-    public Vector<CompressedLocation> getLocationsChildren(String key) {
-        Document tempDoc = this.locationsCollection
-        .find(Filters.eq("key", key))
-            .projection(new Document("children", 1))
-        .first();
-
-        System.out.println("tempDoc for children retreival: " + tempDoc);
-
-        Vector<CompressedLocation> tempChildren = new Vector<CompressedLocation>();
-        for (Object child_ : tempDoc.get("children", ArrayList.class)) {
-            Document temperDoc = (Document) child_;
-            System.out.println("temperDoc for children retreival: " + temperDoc);
-            tempChildren.add(jsonMapper.readValue(temperDoc.toJson(), CompressedLocation.class));
+        if (tempDoc == null) { 
+            System.out.println("  No exisitng parent found for "+currentLoc.name+".");
+            return null; 
         }
 
-        return tempChildren;
-    } 
+        System.out.println("josh tempDoc for existing parent retreival: " + tempDoc);
+        existingParent = new CompressedLocation();
+        existingParent.type = tempDoc.get("type", LocationType.class);
+        existingParent.name = tempDoc.get("name", String.class);
+        // Vector<CompressedLocation> tempChildren = new Vector<CompressedLocation>();
+        // for (Object child_ : tempDoc.get("children", ArrayList.class)) {
+        //     Document temperDoc = (Document) child_;
+        //     System.out.println("josh temperDoc for existing parent retreival: " + temperDoc);
+        //     if (currentLoc.equals(jsonMapper.readValue(temperDoc.toJson(), CompressedLocation.class))) { // parent found!
+        //         existingParent = new CompressedLocation();
+        //         existingParent.type = pType;
+        //         existingParent.name = tempDoc.get("name", String.class);
+        //     }
+        // }
+        System.out.println("  Found exisitng parent for "+currentLoc.name+": " + existingParent.name);
+        return existingParent;
+    }
+
+    public Vector<CompressedLocation> findAllExistingChildren(CompressedLocation currentLoc) {
+       Vector<CompressedLocation> existingChildren = new Vector<CompressedLocation>();
+
+        for (Document tempDoc : this.locationsCollection
+        .find(Filters.eq("parent", currentLoc))
+            .projection(new Document("type", 1).append("name", 1))) 
+        {
+            System.out.println("josh tempDoc for existing child retreival: " + tempDoc);
+            CompressedLocation chLoc = new CompressedLocation();
+            chLoc. type = tempDoc.get("type", LocationType.class);
+            chLoc.name = tempDoc.get("name", String.class);
+            existingChildren.add(chLoc);
+        }
+        // Vector<CompressedLocation> tempChildren = new Vector<CompressedLocation>();
+        // for (Object child_ : tempDoc.get("children", ArrayList.class)) {
+        //     Document temperDoc = (Document) child_;
+        //     System.out.println("josh temperDoc for existing parent retreival: " + temperDoc);
+        //     if (currentLoc.equals(jsonMapper.readValue(temperDoc.toJson(), CompressedLocation.class))) { // parent found!
+        //         existingParent = new CompressedLocation();
+        //         existingParent.type = pType;
+        //         existingParent.name = tempDoc.get("name", String.class);
+        //     }
+        // }
+        System.out.println("  Found "+existingChildren.size()+" exisitng children for "+currentLoc.name+".");
+        return existingChildren;
+    }
+
+    // private Vector<CompressedLocation> getLocationsChildren(String key) {
+    //     Document tempDoc = this.locationsCollection
+    //     .find(Filters.eq("key", key))
+    //         .projection(new Document("children", 1))
+    //     .first();
+
+    //     System.out.println("josh tempDoc for children retreival: " + tempDoc);
+    //     Vector<CompressedLocation> tempChildren = new Vector<CompressedLocation>();
+    //     for (Object child_ : tempDoc.get("children", ArrayList.class)) {
+    //         Document temperDoc = (Document) child_;
+    //         System.out.println("josh temperDoc for child retreival: " + temperDoc);
+    //         tempChildren.add(jsonMapper.readValue(temperDoc.toJson(), CompressedLocation.class));
+    //     }
+
+    //     return tempChildren;
+    // } 
+
+    // public CompressedLocation getLocationsParent(String key) {
+    //     Document tempDoc = this.locationsCollection
+    //     .find(Filters.eq("key", key))
+    //         .projection(new Document("parent", 1))
+    //     .first();
+
+    //     // System.out.println("TempDoc for parent retrieval: " + tempDoc.toJson());
+        
+    //     CompressedLocation tempParent = jsonMapper.readValue(tempDoc.get("parent", Document.class).toJson(), CompressedLocation.class);
+    //     return tempParent;
+    // }
 
     // public void updateLocation(Location location) { // josh fix
     //     this.locationsCollection.updateOne(Filters.eq("key", location.makeNameTypeKey()), 

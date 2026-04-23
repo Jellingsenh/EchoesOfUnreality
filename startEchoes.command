@@ -60,3 +60,6 @@ echo
 
 echo ~~~ Database stopped ~~~
 echo 
+
+echo ~~~ Echoes of Unreality World Generator Stopped ~~~
+echo 

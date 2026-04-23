@@ -1,6 +1,6 @@
 package com.jellingsen.games.echoes_of_unreality.API;
 
-import java.util.Vector;
+// import java.util.Vector;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,9 +12,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.jellingsen.games.echoes_of_unreality.Components.Character.NPC;
 import com.jellingsen.games.echoes_of_unreality.Components.Character.PlayableCharacter;
-import com.jellingsen.games.echoes_of_unreality.Components.Location.CompressedLocation;
+// import com.jellingsen.games.echoes_of_unreality.Components.Location.CompressedLocation;
 import com.jellingsen.games.echoes_of_unreality.Components.Location.Location;
-import com.jellingsen.games.echoes_of_unreality.Components.Location.LocationEnums.LocationType;
+// import com.jellingsen.games.echoes_of_unreality.Components.Location.LocationEnums.LocationType;
 import com.jellingsen.games.echoes_of_unreality.Manager.UnrealityManager;
 
 @SpringBootApplication
@@ -40,9 +40,9 @@ public class EchoesEndpoints {
         return unrealityManager.generateRandomLocation();
     }
 
-    @GetMapping("/generate/location/{type}")
-	public Location generateLocation(@PathVariable LocationType type) {
-        return unrealityManager.generateRandomLocationByType(type); // josh todo - generate a location of the specified type
+    @PostMapping("/randomize/location/{locked}")
+    public Location randomizeLocation(@PathVariable String[] locked, @RequestBody Location location) {
+        return unrealityManager.generatePartiallyRandomLocation(location, locked);
     }
 
     @PostMapping("/add/location")
@@ -50,31 +50,42 @@ public class EchoesEndpoints {
         return unrealityManager.saveLocationToDatabase(location);
     }
 
-    @PostMapping("/linkParentAndChildren")
-    public String linkLocations(@RequestBody Vector<CompressedLocation> parentAndChildren) {
-        return unrealityManager.linkLocations(parentAndChildren);
-    }
-
     @GetMapping("/get/location/{key}")
     public Location getLocation(@PathVariable String key) {
         return unrealityManager.getLocationFromDatabase(key);
     }
 
-    @GetMapping("/get/location/{key}/parent")
-    public Location getParent(@PathVariable String key) {
-        return unrealityManager.getParent(key);
-    }
+    // _  //
 
-    @GetMapping("/get/location/{key}/children")
-    public Vector<Location> getChildren(@PathVariable String key) {
-        return unrealityManager.getChildren(key);
-    }
+    // @PostMapping("/linkParentAndChildren")
+    // public String linkLocations(@RequestBody Vector<CompressedLocation> parentAndChildren) {
+    //     return unrealityManager.linkLocations(parentAndChildren);
+    // }
 
-    @GetMapping("/get/location/{key}/chartNewChildren")
-    public Location chartNewChildren(@PathVariable String key) {
-        return unrealityManager.chartNewChildrenForParent(key);
-    }
+    
 
+    // @GetMapping("/get/location/{key}/parent")
+    // public Location getParent(@PathVariable String key) {
+    //     return unrealityManager.getParent(key);
+    // }
+
+    // @GetMapping("/get/location/{key}/children")
+    // public Vector<Location> getChildren(@PathVariable String key) {
+    //     return unrealityManager.getChildren(key);
+    // }
+
+    // @GetMapping("/get/location/{key}/siblings")
+    // public Vector<Location> getSiblings(@PathVariable String key) {
+    //     return unrealityManager.getSiblings(key);
+    // }
+
+    // @GetMapping("/get/location/{key}/chartNewChildren")
+    // public Location chartNewChildren(@PathVariable String key) {
+    //     return unrealityManager.chartNewChildrenForParent(key);
+    // }
+
+    // ^ just get 1 uncharted child?
+    // get uncharted location by type? by parent? completely random?
 
 
     

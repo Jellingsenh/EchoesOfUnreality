@@ -9,13 +9,12 @@ import com.jellingsen.games.echoes_of_unreality.Components.Location.LocationEnum
 import com.jellingsen.games.echoes_of_unreality.Components.Location.LocationEnums.LocationSize;
 import com.jellingsen.games.echoes_of_unreality.Components.Location.LocationEnums.LocationType;
 
-@JsonPropertyOrder({ "appearance", "atmosphere", "gravity", "environments", "materials" })
+@JsonPropertyOrder({ "atmosphere", "gravity", "environments", "materials" })
 public class LocationNature {
     public GravityLevel gravity;
     public Vector<String> materials; // liquids, solids, gasses...
     public Boolean atmosphere; // breathable or not
     public Vector<String> environments; // hot, cold, shifting, etc
-    public String appearance; // shape & color
 
     public LocationNature() {}
 
@@ -24,7 +23,6 @@ public class LocationNature {
         this.materials = generateMaterials(type, containsContinent);
         this. atmosphere = determineAtmosphere(containsContinent);
         this.environments = generateEnvironments(modifier, containsContinent);
-        this.appearance = generateAppearance(type);
     }
 
     private GravityLevel determineGravity(LocationType type, LocationSize size) {
@@ -80,6 +78,7 @@ public class LocationNature {
 
     private String generateRandomMaterial(Vector<String> currentMaterials) { // josh expand to list using DB (add indexed number for random getting)
         String newMaterial = "rock";
+        int safeCount = 0;
         while (currentMaterials.contains(newMaterial)) { // ensure no duplicates
             newMaterial = switch (Randomizer.randomIntXtoY(0, 20)) {
                 case 0 -> "gravel";
@@ -105,6 +104,7 @@ public class LocationNature {
                 case 20 -> "wood";
                 default -> "none"; // should never happen
             };
+            if (safeCount++ > 1000) { break; } // safety break
         }
         return newMaterial;
     }
@@ -127,34 +127,27 @@ public class LocationNature {
     private Vector<String> generateEnvironments(LocationModifier modifier, boolean containsContinent) { // josh todo
         // if on a star, the environemts will be only on the bits on non-plasma material
 
+        String extremeString = "";
+        if (LocationModifier.EXTREME.equals(modifier)) {
+            extremeString = "extremely ";
+        }
+
         // modifer can be deserted, volatile, extreme
 
         Vector<String> newEnvironments = new Vector<String>();
 
         if (this.atmosphere) {
             // if materials.contains(water, etc) then environments.add("humid", etc)
-            newEnvironments.add("breathable");
+            newEnvironments.add(extremeString + "breathable");
         } else {
             // if materials.contains(rock, etc) then environments.add("barren", etc)
             if (containsContinent) {
-                newEnvironments.add("barren");
+                newEnvironments.add(extremeString + "barren");
             } else {
                 newEnvironments = null; // STAR without continent
             }
         }
 
         return newEnvironments;
-    }
-
-    private String generateAppearance(LocationType type) {
-        // josh materials also affect appearance
-
-        switch (type) {
-            case STAR -> { return "A bright, glowing mass of plasma."; }
-            case PLANET -> { return "A spherical body with a varied surface."; }
-            case MOON -> { return "A smaller spherical body orbiting a planet."; }
-            default -> { return "An indescribable location."; } // should never happen
-        }
-        
     }
 }

@@ -4,6 +4,7 @@ import java.util.Vector;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.jellingsen.games.echoes_of_unreality.Components.Location.CompressedLocation;
+import com.jellingsen.games.echoes_of_unreality.Components.Location.LocationEnums.LocationModifier;
 
 @JsonPropertyOrder({ "culture", "history", "religion", "technology", "governemnt", "economy", "secrets", "allies", "enemies" })
 public class LocationSociety {
@@ -19,7 +20,8 @@ public class LocationSociety {
 
     public LocationSociety() {}
 
-    public void setupLocationSociety(Vector<String> anomalies, Vector<String> environments, Vector<CompressedLocation> siblings) { // COUNTRY, AREA, & CITY only
+    public void setupLocationSociety(boolean extreme, Vector<String> anomalies, Vector<String> environments, Vector<CompressedLocation> siblings) { // COUNTRY, AREA, & CITY only
+        
         if (anomalies == null) { anomalies = new Vector<String>();}
 
         this.religion = generateReligion(anomalies);
@@ -27,11 +29,18 @@ public class LocationSociety {
         this.history = generateHistory(); // based on religion & technology
         this.culture = generateCulture(environments); // based on environment, technology, history, and religion
         this.governemnt = generateGovernment(); // based on culture
+
+        if (extreme) {
+            // josh potential llm
+            this.governemnt = "extreme " + this.governemnt;
+            this.religion = "extreme " + this.religion;
+            this.culture = "extreme " + this.culture;
+            this.technology = "extreme " + this.technology;
+        } 
+
         this.economy = generateEconomy(); // based on government and technology
         this.secrets = generateSecrets(); // based on history and government
-        this.allies = generateAllies(siblings); // based on government and economy and siblings
-        this.enemies = generateEnemies(siblings); // based on government and economy and siblings
-
+        generateAlliesAndEnemies(siblings, extreme); // based on government and economy and siblings, extreme societies have more enemies
     }
 
     private String generateReligion(Vector<String> anomalies) {
@@ -64,14 +73,9 @@ public class LocationSociety {
         return "Secrets based on history and government: "; // josh TODO: make this more complex and less placeholder
     }
 
-    private String generateAllies(Vector<CompressedLocation> siblings) {
+    public String generateAlliesAndEnemies(Vector<CompressedLocation> siblings, boolean extreme) {
         if (siblings == null) { return null; }
         // any siblings with the same governemnt are allies
-        return "Allies based on government and economy and siblings: "; // josh TODO: make this more complex and less placeholder
-    }
-
-    private String generateEnemies(Vector<CompressedLocation> siblings) {
-        if (siblings == null) { return null; }
-        return "Enemies based on government and economy and siblings: "; // josh TODO: make this more complex and less placeholder
+        return "Allies and enemies based on government and economy and siblings: "; // josh TODO: make this more complex and less placeholder
     }
 }
