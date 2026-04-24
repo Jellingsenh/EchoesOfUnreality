@@ -3,7 +3,11 @@ package com.jellingsen.games.echoes_of_unreality.Database;
 import static com.mongodb.MongoClientSettings.getDefaultCodecRegistry;
 import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
 import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
+import static com.mongodb.client.model.Aggregates.sample;
+import static com.mongodb.client.model.Aggregates.match;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Vector;
 
 import org.bson.Document;
@@ -86,15 +90,17 @@ public class DatabaseConnection {
         return tempCollection != null && tempCollection.find(new Document("key", key)).first() != null;
     }
 
+    // LOCATION //
+
     public Location createNewLocationSave(Location location) { // creating a new location
         System.out.println("  -->  saving location: " + location.name);
         String key = location.makeNameTypeKey();
         if (key == null) {
-            System.out.println("Error: Location key is null.");
+            System.out.println("> Error: Location key is null.");
             return null;
         }
         if (checkForKeyInCollection(locationsCollectionName, key)) {
-            System.out.println("Location already exists: " + location.name);
+            System.out.println("> Location already exists: " + location.name);
             return getLocation(key);
         }
 
@@ -111,10 +117,10 @@ public class DatabaseConnection {
                                     .append("parent", location.parent)
                                     .append("positionOnParent", location.positionOnParent)
                                     .append("children", location.children));
-            System.out.println("Inserted location " + location.name);
+            System.out.println("> Inserted location " + location.name);
             return location;
         } catch (Exception e) {
-            System.out.println("Error inserting location " + location.name + ": " + e.getMessage());
+            System.out.println("> Error inserting location " + location.name + ": " + e.getMessage());
             return null;
         }
     }
@@ -128,16 +134,6 @@ public class DatabaseConnection {
         return jsonMapper.readValue(tempDoc.toJson(), Location.class);
     }
 
-    // public CompressedLocation getCompressedLocation(String key) {
-    //     CompressedLocation tempCompressedLocation = jsonMapper.readValue(this.locationsCollection
-    //     .find(Filters.eq("key", key))
-    //         .projection(new Document("name", 1)
-    //         .append("type", 1))
-    //     .first().toJson(), CompressedLocation.class);
-
-    //     return tempCompressedLocation;
-    // }
-
     public CompressedLocation findExistingParent(CompressedLocation currentLoc) {
         CompressedLocation existingParent = null;
 
@@ -146,25 +142,13 @@ public class DatabaseConnection {
             .projection(new Document("type", 1).append("name", 1))
         .first();
         if (tempDoc == null) { 
-            System.out.println("  No exisitng parent found for "+currentLoc.name+".");
+            System.out.println("    > No existing parent found for "+currentLoc.name);
             return null; 
         }
-
-        System.out.println("josh tempDoc for existing parent retreival: " + tempDoc);
         existingParent = new CompressedLocation();
-        existingParent.type = tempDoc.get("type", LocationType.class);
+        existingParent.type = LocationType.valueOf(tempDoc.get("type", String.class));
         existingParent.name = tempDoc.get("name", String.class);
-        // Vector<CompressedLocation> tempChildren = new Vector<CompressedLocation>();
-        // for (Object child_ : tempDoc.get("children", ArrayList.class)) {
-        //     Document temperDoc = (Document) child_;
-        //     System.out.println("josh temperDoc for existing parent retreival: " + temperDoc);
-        //     if (currentLoc.equals(jsonMapper.readValue(temperDoc.toJson(), CompressedLocation.class))) { // parent found!
-        //         existingParent = new CompressedLocation();
-        //         existingParent.type = pType;
-        //         existingParent.name = tempDoc.get("name", String.class);
-        //     }
-        // }
-        System.out.println("  Found exisitng parent for "+currentLoc.name+": " + existingParent.name);
+        System.out.println("    > Found exisitng parent for "+currentLoc.name+": " + existingParent.name);
         return existingParent;
     }
 
@@ -175,77 +159,76 @@ public class DatabaseConnection {
         .find(Filters.eq("parent", currentLoc))
             .projection(new Document("type", 1).append("name", 1))) 
         {
-            System.out.println("josh tempDoc for existing child retreival: " + tempDoc);
+            // System.out.println("josh tempDoc for existing child retreival: " + tempDoc);
             CompressedLocation chLoc = new CompressedLocation();
-            chLoc. type = tempDoc.get("type", LocationType.class);
+            chLoc. type = LocationType.valueOf(tempDoc.get("type", String.class));
             chLoc.name = tempDoc.get("name", String.class);
             existingChildren.add(chLoc);
         }
-        // Vector<CompressedLocation> tempChildren = new Vector<CompressedLocation>();
-        // for (Object child_ : tempDoc.get("children", ArrayList.class)) {
-        //     Document temperDoc = (Document) child_;
-        //     System.out.println("josh temperDoc for existing parent retreival: " + temperDoc);
-        //     if (currentLoc.equals(jsonMapper.readValue(temperDoc.toJson(), CompressedLocation.class))) { // parent found!
-        //         existingParent = new CompressedLocation();
-        //         existingParent.type = pType;
-        //         existingParent.name = tempDoc.get("name", String.class);
-        //     }
-        // }
-        System.out.println("  Found "+existingChildren.size()+" exisitng children for "+currentLoc.name+".");
+        System.out.println("    > Found "+existingChildren.size()+" exisitng children for "+currentLoc.name);
         return existingChildren;
     }
 
-    // private Vector<CompressedLocation> getLocationsChildren(String key) {
-    //     Document tempDoc = this.locationsCollection
-    //     .find(Filters.eq("key", key))
-    //         .projection(new Document("children", 1))
-    //     .first();
+    public Vector<CompressedLocation> getLocationsChildren(String key) {
+        Document tempDoc = this.locationsCollection
+        .find(Filters.eq("key", key))
+            .projection(new Document("children", 1))
+        .first();
+        if (tempDoc == null) { return null; }
+        Vector<CompressedLocation> tempChildren = new Vector<CompressedLocation>();
+        for (Object child_ : tempDoc.get("children", ArrayList.class)) {
+            Document temperDoc = (Document) child_;
+            tempChildren.add(jsonMapper.readValue(temperDoc.toJson(), CompressedLocation.class));
+        }
+        return tempChildren;
+    } 
 
-    //     System.out.println("josh tempDoc for children retreival: " + tempDoc);
-    //     Vector<CompressedLocation> tempChildren = new Vector<CompressedLocation>();
-    //     for (Object child_ : tempDoc.get("children", ArrayList.class)) {
-    //         Document temperDoc = (Document) child_;
-    //         System.out.println("josh temperDoc for child retreival: " + temperDoc);
-    //         tempChildren.add(jsonMapper.readValue(temperDoc.toJson(), CompressedLocation.class));
-    //     }
+    public void updateLocationsCompressedParent(String key, CompressedLocation newParent) {
+        this.locationsCollection.updateOne(Filters.eq("key", key),
+        Updates.set("parent",  newParent));
+    }
 
-    //     return tempChildren;
-    // } 
+    public void updateLocationsCompressedChildren(String key, Vector<CompressedLocation> newChildren) {
+        this.locationsCollection.updateOne(Filters.eq("key", key),
+        Updates.set("children",  newChildren));
+    }
+
+    public Location getRandomChartedLocation() {
+        Document tempDoc = this.locationsCollection.aggregate(Arrays.asList(sample(1))).first();
+        if (tempDoc == null) {
+            return null;
+        }
+        return jsonMapper.readValue(tempDoc.toJson(), Location.class);
+    }
+
+    public Location getRandomChartedLocationFromType(LocationType type) {
+        Document tempDoc = this.locationsCollection.aggregate(Arrays.asList(match(Filters.eq("type", type)),sample(1))).first();
+        if (tempDoc == null) {
+            return null;
+        }
+        return jsonMapper.readValue(tempDoc.toJson(), Location.class);
+    }
 
     // public CompressedLocation getLocationsParent(String key) {
     //     Document tempDoc = this.locationsCollection
     //     .find(Filters.eq("key", key))
     //         .projection(new Document("parent", 1))
     //     .first();
-
-    //     // System.out.println("TempDoc for parent retrieval: " + tempDoc.toJson());
-        
+    //     if (tempDoc == null) { return null; }
+    //     System.out.println("josh TempDoc for parent retrieval: " + tempDoc.toJson());
     //     CompressedLocation tempParent = jsonMapper.readValue(tempDoc.get("parent", Document.class).toJson(), CompressedLocation.class);
     //     return tempParent;
     // }
 
-    // public void updateLocation(Location location) { // josh fix
-    //     this.locationsCollection.updateOne(Filters.eq("key", location.makeNameTypeKey()), 
-    //     Updates.set("location", location));
-    //     System.out.println("Location updated: " + location.name);
-    // }  
+    // public CompressedLocation getCompressedLocation(String key) {
+    //     CompressedLocation tempCompressedLocation = jsonMapper.readValue(this.locationsCollection
+    //     .find(Filters.eq("key", key))
+    //         .projection(new Document("name", 1)
+    //         .append("type", 1))
+    //     .first().toJson(), CompressedLocation.class);
 
-    public void updateLocationsCompressedParent(String key, CompressedLocation newParent) {
-        System.out.println("    -> Updating parent for location: " + key + " to new parent: " + newParent.name);
-        this.locationsCollection.updateOne(Filters.eq("key", key),
-        Updates.set("parent",  newParent));
-        // System.out.println("Location's parent updated.");
-    }
-
-    public void updateLocationsCompressedChildren(String key, Vector<CompressedLocation> newChildren) {
-        System.out.println("    -> Updating children for location: " + key + " to new children num: " + newChildren.size());
-        this.locationsCollection.updateOne(Filters.eq("key", key),
-        Updates.set("children",  newChildren));
-        // System.out.println("Location's children updated.");
-    }
-
-
-
+    //     return tempCompressedLocation;
+    // }
 
     //// CHARACTER ////
 
@@ -299,7 +282,7 @@ public class DatabaseConnection {
 
 
 
-    
+    // CLEAR DATABASES //
 
     public void clearAllCollections() { // josh BE CAREFUL WITH THIS, IT WILL DELETE ALL DATA IN THE DATABASES, FOR TESTING ONLY
         this.randomLocationNamesCollection.drop();

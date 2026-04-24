@@ -1,6 +1,6 @@
 package com.jellingsen.games.echoes_of_unreality.API;
 
-// import java.util.Vector;
+import java.util.Vector;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,9 +12,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.jellingsen.games.echoes_of_unreality.Components.Character.NPC;
 import com.jellingsen.games.echoes_of_unreality.Components.Character.PlayableCharacter;
-// import com.jellingsen.games.echoes_of_unreality.Components.Location.CompressedLocation;
+import com.jellingsen.games.echoes_of_unreality.Components.Location.CompressedLocation;
 import com.jellingsen.games.echoes_of_unreality.Components.Location.Location;
-// import com.jellingsen.games.echoes_of_unreality.Components.Location.LocationEnums.LocationType;
+import com.jellingsen.games.echoes_of_unreality.Components.Location.LocationEnums.LocationType;
 import com.jellingsen.games.echoes_of_unreality.Manager.UnrealityManager;
 
 @SpringBootApplication
@@ -35,14 +35,22 @@ public class EchoesEndpoints {
 
     // // // LOCATION ENDPOINTS // // //
 
-    @GetMapping("/generate/location")
-	public Location generateLocation() {
+    @GetMapping("/generateRandom/location")
+	public Location generateRandomLocation() {
         return unrealityManager.generateRandomLocation();
     }
 
-    @PostMapping("/randomize/location/{locked}")
+    @GetMapping("/generateRandom/location/{type}")
+    public Location generateRandomLocationFromType(@PathVariable LocationType type) {
+        String[] lockedType = {"type"};
+        Location location = new Location();
+        location.type = type;
+        return unrealityManager.generatePartiallyRandomLocation(location, lockedType, true);
+    }
+
+    @PostMapping("/randomize/location/{locked}") // name,type,appearance,summary,size,modifier,nature,society,anomalies,parent,positionOnParent,children
     public Location randomizeLocation(@PathVariable String[] locked, @RequestBody Location location) {
-        return unrealityManager.generatePartiallyRandomLocation(location, locked);
+        return unrealityManager.generatePartiallyRandomLocation(location, locked, false);
     }
 
     @PostMapping("/add/location")
@@ -55,45 +63,43 @@ public class EchoesEndpoints {
         return unrealityManager.getLocationFromDatabase(key);
     }
 
-    // _  //
+    @PostMapping("/linkParentAndChildren")
+    public String linkLocations(@RequestBody Vector<CompressedLocation> parentAndChildren) {
+        return unrealityManager.linkLocations(parentAndChildren); 
+    }
 
-    // @PostMapping("/linkParentAndChildren")
-    // public String linkLocations(@RequestBody Vector<CompressedLocation> parentAndChildren) {
-    //     return unrealityManager.linkLocations(parentAndChildren);
+    @GetMapping("/getRandom/location/{uncharted}")
+    public Location getRandomLocation(@PathVariable boolean uncharted) {
+        if (uncharted) {
+            return generateRandomLocation();
+        }
+        return unrealityManager.getRandomChartedLocation();
+    }
+
+    @GetMapping("/getRandom/location/{uncharted}/{type}")
+    public Location getRandomLocationByType(@PathVariable boolean uncharted, @PathVariable LocationType type) {
+        if (uncharted) {
+            return generateRandomLocationFromType(type);
+        }
+        return unrealityManager.getRandomChartedLocationFromType(type);
+    }
+
+    @PostMapping("/getRandom/sibling/{uncharted}/{key}")
+    public Location getRandomSiblingLocation(@PathVariable boolean uncharted, @PathVariable String key, @RequestBody CompressedLocation parentLoc) {
+        return unrealityManager.getRandomSiblingLocation(uncharted, key, parentLoc);
+    }
+
+    // @GetMapping("/getRandom/location/{uncharted}/{key}/sameUniverse") // josh todo BIG
+    // public Location getRandomLocationSameUniverse(@PathVariable boolean uncharted, @PathVariable String key) {
+    //     // generate universe if not exists! (up and down!!!!)
+    //     return null;
     // }
 
-    
-
-    // @GetMapping("/get/location/{key}/parent")
-    // public Location getParent(@PathVariable String key) {
-    //     return unrealityManager.getParent(key);
-    // }
-
-    // @GetMapping("/get/location/{key}/children")
-    // public Vector<Location> getChildren(@PathVariable String key) {
-    //     return unrealityManager.getChildren(key);
-    // }
-
-    // @GetMapping("/get/location/{key}/siblings")
-    // public Vector<Location> getSiblings(@PathVariable String key) {
-    //     return unrealityManager.getSiblings(key);
-    // }
-
-    // @GetMapping("/get/location/{key}/chartNewChildren")
-    // public Location chartNewChildren(@PathVariable String key) {
-    //     return unrealityManager.chartNewChildrenForParent(key);
-    // }
-
-    // ^ just get 1 uncharted child?
-    // get uncharted location by type? by parent? completely random?
-
-
-    
-    
+    // josh map view get endpoints?
 
     // // // CHARACTER ENDPOINTS // // //
 
-	@GetMapping("/generate/npc")
+	@GetMapping("/generateRandom/npc")
 	public NPC generateNpc() {
 		return unrealityManager.generateRandomNpc(); 
 	}
@@ -103,7 +109,7 @@ public class EchoesEndpoints {
         return unrealityManager.saveNpcToDatabase(npc);
     }
 
-    @GetMapping("/generate/pc") // josh temporary
+    @GetMapping("/generateRandom/pc") // josh temporary
     public PlayableCharacter generatePc() {
         PlayableCharacter pc = new PlayableCharacter();
 
@@ -127,7 +133,13 @@ public class EchoesEndpoints {
 
 
 
-    // !!!!!!
+
+
+
+
+
+
+    // CLEAR DATABASES //
 
     @GetMapping("/clearDatabase") // josh temporary for testing, will delete all data in the databases, BE CAREFUL WITH THIS
     public String clearDatabase() {

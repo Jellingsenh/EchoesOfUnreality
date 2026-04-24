@@ -1,7 +1,6 @@
 package com.jellingsen.games.echoes_of_unreality.Components.Location;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.jellingsen.games.echoes_of_unreality.Components.Helpers.Randomizer;
 import com.jellingsen.games.echoes_of_unreality.Components.Location.LocationEnums.LocationType;
 
 @JsonPropertyOrder({ "name", "type"})
