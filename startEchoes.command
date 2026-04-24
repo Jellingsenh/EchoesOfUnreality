@@ -14,6 +14,10 @@ echo
 echo Checking versions and config...
 echo 
 
+echo Npm version:
+npm -v
+echo 
+
 echo Maven version:
 mvn -v
 echo 
@@ -30,29 +34,50 @@ echo MongoDB database path:
 grep dbPath /opt/homebrew/etc/mongod.conf
 echo 
 
+echo Building backend...
+cd /Users/joshua/Code/EchoesOfUnreality/backend
+mvn clean install
+echo 
+
+echo Building frontend...
+cd /Users/joshua/Code/EchoesOfUnreality/frontend
+npm install
+# npm run build # production mode
+echo 
+
 echo ~~~ Starting database ~~~
 brew services start mongodb-community
 echo Verifying database started...
 brew services list
 echo 
 
-echo Building backend...
-cd /Users/joshua/Code/EchoesOfUnreality/backend
-mvn clean install
-echo 
+startBackend() { 
+    echo ~~~ Starting backend ~~~
+    echo 
+    cd /Users/joshua/Code/EchoesOfUnreality/backend/target
+    java -jar echoes-of-unreality-1.0.jar
+    echo 
+    echo ~~~ Backend stopped ~~~
+}
 
-echo ~~~ Starting backend ~~~
-cd target
-java -jar echoes-of-unreality-1.0.jar
-echo 
+startFrontend() {
+    echo ~~~ Starting frontend ~~~
+    echo 
+    cd /Users/joshua/Code/EchoesOfUnreality/frontend
+    npm run dev # development mode
+    # npx serve -s build # production mode
+    echo 
+    echo ~~~ Frontend stopped ~~~
+}
+
+startFrontend & startBackend
+wait
 
 ## ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
-## execution pauses while backend runs
+## execution pauses while frontend and backend run
 ## ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
 
-echo ~~~Backend stopped ~~~
 echo 
-
 brew services stop mongodb-community
 echo Verifying database stopped...
 brew services list

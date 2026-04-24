@@ -8,11 +8,10 @@
 # *.tmp
 
 # Ignore an entire directory (always end with a /)
-# node_modules/
+backend/target/
 
 # Ignore files in a specific folder but keep the folder
-/database/*
-/backend/target/*
+database/*
 # temp/*
 
 # Exception: Ignore all .log files BUT keep important.log

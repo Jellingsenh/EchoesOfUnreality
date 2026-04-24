@@ -12,13 +12,9 @@ Install MongoDB (brew tap mongodb/brew && brew install mongodb-community)
 <br>
 Set db path in MongoDB config file (/opt/homebrew/etc/mongod.conf) to a valid directory on your machine (ex: {your_path_here}/EchoesOfUnreality/database/)
 <br>
-
-
-
-// frontend start here!
-
-
-
+Install Npm (brew install node)
+<br>
+Create ReactTs project with Vite (npm create vite@latest frontend -- --template react-ts)
 <br>
 navigate to the EchoesOfUnreality directory
 <br>
