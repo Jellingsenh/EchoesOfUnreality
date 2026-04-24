@@ -11,8 +11,8 @@
 # node_modules/
 
 # Ignore files in a specific folder but keep the folder
-database/*
-backend/target/*
+/database/*
+/backend/target/*
 # temp/*
 
 # Exception: Ignore all .log files BUT keep important.log
