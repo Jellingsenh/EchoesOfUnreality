@@ -8,9 +8,9 @@
 # *.tmp
 
 # Ignore an entire directory (always end with a /)
+database/
+backend/target/
 # node_modules/
-# dist/
-# build/
 
 # Ignore files in a specific folder but keep the folder
 # temp/*
