@@ -22,6 +22,10 @@ chmod +x startEchoes.command
 <br>
 ./startEchoes.command
 <br>
+HOSTING:
+<br>
+nginx
+<br>
 
 
 

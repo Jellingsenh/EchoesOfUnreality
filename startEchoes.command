@@ -42,7 +42,7 @@ echo
 echo Building frontend...
 cd /Users/joshua/Code/EchoesOfUnreality/frontend
 npm install
-# npm run build # production mode
+npm run build
 echo 
 
 echo ~~~ Starting database ~~~
@@ -56,18 +56,18 @@ startBackend() {
     echo 
     cd /Users/joshua/Code/EchoesOfUnreality/backend/target
     java -jar echoes-of-unreality-1.0.jar
-    echo 
     echo ~~~ Backend stopped ~~~
+    echo 
 }
 
 startFrontend() {
     echo ~~~ Starting frontend ~~~
-    echo 
+    # echo 
     cd /Users/joshua/Code/EchoesOfUnreality/frontend
     npm run dev # development mode
-    # npx serve -s build # production mode
-    echo 
+    # npm run preview # eventually self host with nginx?
     echo ~~~ Frontend stopped ~~~
+    echo 
 }
 
 startFrontend & startBackend
@@ -77,7 +77,6 @@ wait
 ## execution pauses while frontend and backend run
 ## ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
 
-echo 
 brew services stop mongodb-community
 echo Verifying database stopped...
 brew services list

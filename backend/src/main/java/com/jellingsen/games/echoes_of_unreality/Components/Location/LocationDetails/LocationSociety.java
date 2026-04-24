@@ -4,7 +4,6 @@ import java.util.Vector;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.jellingsen.games.echoes_of_unreality.Components.Location.CompressedLocation;
-import com.jellingsen.games.echoes_of_unreality.Components.Location.LocationEnums.LocationModifier;
 
 @JsonPropertyOrder({ "culture", "history", "religion", "technology", "governemnt", "economy", "secrets", "allies", "enemies" })
 public class LocationSociety {
