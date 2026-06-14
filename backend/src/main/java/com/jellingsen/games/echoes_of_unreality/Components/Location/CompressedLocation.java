@@ -1,17 +1,16 @@
 package com.jellingsen.games.echoes_of_unreality.Components.Location;
-
+// import org.bson.codecs.pojo.annotations.BsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.jellingsen.games.echoes_of_unreality.Components.Location.LocationEnums.LocationType;
 
-@JsonPropertyOrder({ "name", "type"})
+@JsonPropertyOrder({ "name", "type", "charted" })
 public class CompressedLocation {
-    public LocationType type;
+    // @BsonProperty("name")
     public String name;
+    // @BsonProperty("type")
+    public LocationType type;
+    // @BsonProperty("charted")
+    public boolean charted;
 
     public CompressedLocation() {}
-
-    public String makeNameTypeKey() {
-        if (this.name == null || this.type == null) { return null; }
-        return this.name + "_" + this.type;
-    }
 }

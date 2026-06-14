@@ -20,60 +20,59 @@ public class BaseCharacter extends CompressedCharacter{
     public int level;
     public int mass;
     public String appearance;
-    public Vector<MovementType> movementType;
+    public Vector<MovementType> movement;
+    public int chaos; // limit = 6
     public int health;
     public int wounds = 0;
     public int bruises = 0;
-    public Vector<String> weaknesses;
     public Vector<String> defenses;
+    public Vector<String> weaknesses;
     public CharacterTraitsAndTalents traitsAndTalents;
     public Vector<Attack> attacks;
     public Vector<Ability> abilities;
-    public int aura = 0;
-    public int potential = 0;
+    public Vector<Integer> aura; // aura & auraLeft
     public Vector<Anomaly> anomalies; 
     public Vector<Effect> currentEffects;
     public String other;
     public Vector<Item> inventory;
-    public int actionsPerTurn;
-    public int actionsLeft;
+    public Vector<Integer> actions; // 3 actions per turn. actions & actionsLeft
+    public Vector<Integer> reactions; // 1 reaction per turn. reactions & reactionsLeft
 
     public BaseCharacter() {}
 
     public void setupBaseCharacter(CharacterType type, Integer level, 
         Integer mass, Vector<MovementType> movementType, 
         Integer health, Integer wounds, Integer bruises, Vector<String> weaknesses, 
-        Vector<String> defenses, CharacterTraitsAndTalents traitsAndTalents, Vector<Attack> attacks, 
-        Vector<Ability> abilities, Integer aura, Integer potential, Vector<Anomaly> anomalies,
-        Vector<Effect> currentEffects, String other, Vector<Item> inventory) {
+        Vector<String> defenses, CharacterTraitsAndTalents traitsAndTalents, 
+        Vector<Attack> attacks, Vector<Ability> abilities, Vector<Integer> aura, 
+        Vector<Anomaly> anomalies, Vector<Effect> currentEffects, String other, 
+        Vector<Item> inventory, Vector<Integer> actions, Vector<Integer> reactions) {
 
         setupCompressedCharacter(type);
 
         this.level = (level != null && level > 0) ? level : generateLevel();
         this.mass = (mass != null) ? mass : generateMass();
-        this.movementType = (movementType != null) ? movementType : generateMovementType();
+        this.movement = (movementType != null) ? movementType : generateMovementType();
         this.traitsAndTalents = (traitsAndTalents != null) ? traitsAndTalents : generateCharacterTraitsAndTalents();
-        int numRanks = populateRanks(); // pass numRanks value to generate health
-        this.health = (health != null && health > 0) ? health : generateHealth(numRanks);
+        this.health = (health != null && health > 0) ? health : generateHealth();
         this.wounds = (wounds != null && wounds >= 0) ? wounds : 0;
         this.bruises = (bruises != null && bruises >= 0) ? bruises : 0;
         this.weaknesses = (weaknesses != null) ? weaknesses : generateWeaknesses();
         this.defenses = (defenses != null) ? defenses : generateDefenses();
         this.attacks = (attacks != null) ? attacks : generateAttacks();
         this.abilities = (abilities != null) ? abilities : generateAbilities();
-        this.potential = (potential != null && potential >= 0) ? potential : generatePotential();
-        this.aura = (aura != null && aura >= 0) ? aura : this.potential; 
+        this.aura = (aura != null && !aura.isEmpty()) ? aura : generateAura();
         this.anomalies = (anomalies != null) ? anomalies : generateAnomalies();
         this.currentEffects = (currentEffects != null) ? currentEffects : generateCurrentEffects();
         this.other = other;
         this.inventory = (inventory != null) ? inventory : generateInventory();
-        this.actionsPerTurn = 3;
-        this.actionsLeft = this.actionsPerTurn;
+        this.actions = (actions != null) ? actions : new Vector<Integer>(Arrays.asList(3,3)); // 3 actions per turn
+        this.reactions = (reactions != null) ? reactions : new Vector<Integer>(Arrays.asList(1,1)); // 1 reaction per turn
         // title, species, name, and appearance will be generated at the NPC or PC level
     }
 
     protected int generateLevel() {
-        int levelChance = Randomizer.randomIntXtoY(1, (this.type.equals(CharacterType.PLAYER)) ? 174 : 210);
+        int levelChance = Randomizer.randomIntXtoY(1, (CharacterType.PLAYER == this.type) ? 174 : 210);
         int newLevel;
         if (1 <= levelChance && levelChance <= 20) { // 20/210 = 9.524% chance
             newLevel = 1;
@@ -135,12 +134,12 @@ public class BaseCharacter extends CompressedCharacter{
         CharacterTraitsAndTalents newTraitsAndTalents = new CharacterTraitsAndTalents();
 
         newTraitsAndTalents.setupCharacterTraitsAndTalents(null, null, null, null, null);
-
+        populateRanks();
         return newTraitsAndTalents;
     }
 
-    private int populateRanks() { // returns numRanks so I dont't have to re-calculate numRanks for health
-        int numRanks = this.level*4 + Randomizer.randomIntXtoY(1, 8); // 4 ranks per level, plus bonus ranks
+    private void populateRanks() { // returns numRanks so I dont't have to re-calculate numRanks for health
+        int numRanks = this.level*4 + Randomizer.randomIntXtoY(2, 10); // 4 ranks per level, plus bonus ranks
         int ranksCountdown = numRanks;
 
         while (ranksCountdown > 0) {
@@ -177,11 +176,11 @@ public class BaseCharacter extends CompressedCharacter{
         this.traitsAndTalents.rationality.calculateTraitRankFromChildren();
         this.traitsAndTalents.personality.calculateTraitRankFromChildren();
         this.traitsAndTalents.unreality.calculateTraitRankFromChildren();
-        return numRanks;
+        return;
     }
     
-    private int generateHealth(int numRanks) {
-        return numRanks + this.traitsAndTalents.physicality.traitDetails.determineRankNumber() + this.traitsAndTalents.agility.traitDetails.determineRankNumber() + this.traitsAndTalents.rationality.traitDetails.determineRankNumber() + this.traitsAndTalents.personality.traitDetails.determineRankNumber() + this.traitsAndTalents.unreality.traitDetails.determineRankNumber();
+    private int generateHealth() {
+        return this.level + this.traitsAndTalents.physicality.traitDetails.determineRankNumber() + this.traitsAndTalents.agility.traitDetails.determineRankNumber() + this.traitsAndTalents.rationality.traitDetails.determineRankNumber() + this.traitsAndTalents.personality.traitDetails.determineRankNumber() + this.traitsAndTalents.unreality.traitDetails.determineRankNumber();
     }
 
     private Vector<String> generateWeaknesses() {
@@ -329,8 +328,9 @@ public class BaseCharacter extends CompressedCharacter{
         return ability;
     }
 
-    private int generatePotential() {
-        return this.traitsAndTalents.unreality.traitDetails.determineRankNumber() +1;
+    private Vector<Integer> generateAura() {
+        int tempAura = this.traitsAndTalents.unreality.traitDetails.determineRankNumber() +1;
+        return new Vector<Integer>(Arrays.asList(tempAura,tempAura)); 
     }
 
     private Vector<Anomaly> generateAnomalies() {

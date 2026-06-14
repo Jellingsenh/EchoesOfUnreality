@@ -9,11 +9,11 @@ import com.jellingsen.games.echoes_of_unreality.Components.Location.LocationEnum
 import com.jellingsen.games.echoes_of_unreality.Components.Location.LocationEnums.LocationSize;
 import com.jellingsen.games.echoes_of_unreality.Components.Location.LocationEnums.LocationType;
 
-@JsonPropertyOrder({ "atmosphere", "gravity", "environments", "materials" })
+@JsonPropertyOrder({ "breathable", "gravity", "environments", "materials" })
 public class LocationNature {
     public GravityLevel gravity;
     public Vector<String> materials; // liquids, solids, gasses...
-    public Boolean atmosphere; // breathable or not
+    public Boolean breathable;
     public Vector<String> environments; // hot, cold, shifting, etc
 
     public LocationNature() {}
@@ -21,7 +21,7 @@ public class LocationNature {
     public void setupNature(LocationType type, LocationModifier modifier, LocationSize size, boolean containsContinent) { 
         this.gravity = determineGravity(type, size);
         this.materials = generateMaterials(type, containsContinent);
-        this. atmosphere = determineAtmosphere(containsContinent);
+        this. breathable = determineAtmosphere(containsContinent);
         this.environments = generateEnvironments(modifier, containsContinent);
     }
 
@@ -128,7 +128,7 @@ public class LocationNature {
         // if on a star, the environemts will be only on the bits on non-plasma material
 
         String extremeString = "";
-        if (LocationModifier.EXTREME.equals(modifier)) {
+        if (LocationModifier.EXTREME == modifier) {
             extremeString = "extremely ";
         }
 
@@ -136,7 +136,7 @@ public class LocationNature {
 
         Vector<String> newEnvironments = new Vector<String>();
 
-        if (this.atmosphere) {
+        if (this.breathable) {
             // if materials.contains(water, etc) then environments.add("humid", etc)
             newEnvironments.add(extremeString + "breathable");
         } else {

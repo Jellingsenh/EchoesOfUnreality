@@ -20,16 +20,54 @@ import com.jellingsen.games.echoes_of_unreality.Components.Character.CharacterEn
 import com.jellingsen.games.echoes_of_unreality.Components.Helpers.Randomizer;
 import com.jellingsen.games.echoes_of_unreality.Components.Helpers.StringCorrector;
 
-@JsonPropertyOrder({ "name", "level", "title", "type", "species", "appearance", "might", "foresight", "mass", "movementType", "chaos", "limit",
-    "health", "wounds", "bruises", "defenses", "weaknesses", "ruin", "currentEffects", "currentStance", "actionsPerTurn", "actionsLeft", "attacks", 
-    "abilities", "aura", "potential", "anomalies", "wealth", "inventory", "crew", "otherStances", "traitsAndTalents", 
-    "allies", "goals", "origin", "gimmick", "beliefs", "flaws", "cultures", "other", })
+@JsonPropertyOrder({ 
+    "name", 
+    "level", 
+    "title", 
+    "type", 
+    "species", 
+    "appearance",  
+    "health", 
+    "wounds", 
+    "bruises", 
+    "defenses", 
+    "weaknesses",
+
+    "ruin",
+    "currentStance",  
+
+    "currentEffects", 
+    "actions", 
+    "reactions",
+    "attacks", 
+    "abilities", 
+    "aura", 
+    "anomalies", 
+    "chaos", 
+    "mass", 
+    "movement", 
+
+    "allies", 
+    "goals", 
+    "origin", 
+    "gimmick", 
+    "beliefs", 
+    "flaws", 
+    "cultures", 
+    "wealth", 
+    "might", 
+    "foresight",
+
+    "inventory", 
+
+    "crew", 
+    "otherStances",
+
+    "traitsAndTalents", 
+    "other", })
 public class PlayableCharacter extends BaseCharacter{
     public Boolean might;
     public Boolean foresight;
-
-    public int chaos;    
-    public int limit;
 
     public Stance currentStance;
     public Vector<Stance> otherStances;
@@ -53,24 +91,24 @@ public class PlayableCharacter extends BaseCharacter{
     public void setupPlayableCharacter(String name, String title, CharacterType type, String species, Integer level, Integer mass, 
     String appearance, Vector<MovementType> movementType, Integer health, Integer wounds, Integer bruises, Vector<String> weaknesses, 
     Vector<String> defenses, CharacterTraitsAndTalents traitsAndTalents, 
-    Vector<Attack> attacks, Vector<Ability> abilities, Integer aura, Integer potential, Vector<Anomaly> anomalies, 
+    Vector<Attack> attacks, Vector<Ability> abilities, Vector<Integer> aura, Vector<Anomaly> anomalies, 
     Vector<Effect> currentEffects, String other, Vector<Item> inventory, Boolean might, 
     Boolean foresight, Integer chaos, Integer limit, Stance currentStance, Vector<Stance> otherStances, Integer wealth, 
     Vector<String> ruin, Vector<String> allies, Vector<String> goals, String origin, String gimmick, String beliefs, 
-    String flaws, Vector<String> cultures, Crew crew) {
+    String flaws, Vector<String> cultures, Crew crew, Vector<Integer> actions, Vector<Integer> reactions) {
 
         setupBaseCharacter(type, level, mass, 
             movementType, health, wounds, bruises, 
             weaknesses, defenses, traitsAndTalents, 
-            attacks, abilities, aura, potential, 
-            anomalies, currentEffects, other, inventory);
+            attacks, abilities, aura, anomalies, 
+            currentEffects, other, inventory, 
+            actions, reactions);
 
         this.title = (title != null) ? title : generatePlayerStyleTitle();
         this.species = (species != null && !species.isEmpty()) ? species : generatePlayerSpecies();
         this.name = (name != null && !name.isEmpty()) ? name : generateCharacterName();
         this.might = (might != null) ? might : generateMight();
         this.foresight = (foresight != null) ? foresight : generateForesight();
-        this.limit = (limit != null && limit > 0) ? limit : generateLimit();
         this.chaos = (chaos != null && chaos > 0) ? chaos : 0;
         this.currentStance = (currentStance != null) ? currentStance : generateCurrentStance();
         this.otherStances = (otherStances != null) ? otherStances : generateOtherStances();
@@ -101,10 +139,6 @@ public class PlayableCharacter extends BaseCharacter{
 
     private Boolean generateForesight() {
         return Math.random() < 0.5; // 50% chance josh todo - base foresight on style?
-    }
-
-    private int generateLimit() {
-        return 2; // josh todo - base limit on ranks
     }
 
     private Stance generateCurrentStance() {

@@ -38,8 +38,8 @@ public class CompressedCharacter {
         this.type = (type != null) ? type : generateCharacterType();
     }
 
-    public String makeNameTitleTypeSpeciesKey() {
-        if (this.name == null || this.title == null || this.type == null || this.species == null) { return null; }
-        return this.name + "_" + this.title + "_" + this.type + "_" + this.species.toString();
-    }
+    // public String makeNameTitleTypeSpeciesKey() {
+    //     if (this.name == null || this.title == null || this.type == null || this.species == null) { return null; }
+    //     return this.name + "_" + this.title + "_" + this.type + "_" + this.species.toString();
+    // }
 }

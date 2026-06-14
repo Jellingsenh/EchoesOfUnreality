@@ -9,10 +9,11 @@
 
 # Ignore an entire directory (always end with a /)
 backend/target/
+frontend/dist/
 
 # Ignore files in a specific folder but keep the folder
 database/*
-# temp/*
+images/*
 
 # Exception: Ignore all .log files BUT keep important.log
 # !important.log

@@ -17,31 +17,61 @@ import com.jellingsen.games.echoes_of_unreality.Components.Character.CharacterEn
 import com.jellingsen.games.echoes_of_unreality.Components.Helpers.Randomizer;
 import com.jellingsen.games.echoes_of_unreality.Components.Helpers.StringCorrector;
 
-@JsonPropertyOrder({ "name", "level", "title", "appearance", "type", "species", "modifier", 
-"attitude", "rational", "mass", "movementType", "health", "wounds", "bruises", "defenses", "weaknesses", 
-"currentEffects", "actionsPerTurn", "actionsLeft", "attacks", "abilities", "aura", "potential", "anomalies", "inventory", 
-"traitsAndTalents", "other" })
+@JsonPropertyOrder({ 
+    "name", 
+    "level", 
+    "title",  
+    "type", 
+    "species", 
+    "appearance",
+
+    "modifier", 
+    "attitude", 
+    "consciousness", 
+
+    "health", 
+    "wounds", 
+    "bruises", 
+    "defenses", 
+    "weaknesses", 
+    "currentEffects", 
+    "actions", 
+    "reactions",
+    "attacks", 
+    "abilities", 
+    "aura", 
+    "anomalies", 
+    "chaos", 
+    "limit",
+    "mass", 
+    "movement", 
+    "inventory", 
+    "traitsAndTalents", 
+    "other" })
 public class NPC  extends BaseCharacter {
     public NPCAttitude attitude;
-    public boolean rational = true; // an NPC might be unintelligent, like a beast
+    public boolean consciousness = true; // an NPC might be unintelligent, like a beast
     public NPCModifier modifier; 
 
     public NPC() {}
 
-    public void setupNPC(String title, String name, CharacterType type, String appearance, Integer level, Integer mass, String species, Vector<MovementType> movementType, 
-        Integer health, Integer wounds, Integer bruises, Vector<String> weaknesses, Vector<String> defenses, CharacterTraitsAndTalents traitsAndTalents, 
-        Vector<Attack> attacks, Vector<Ability> abilities, Integer aura, Integer potential, Vector<Anomaly> anomalies, 
-        Vector<Effect> currentEffects, String other, Vector<Item> inventory, NPCAttitude attitude, Boolean rational, NPCModifier modifier) {
+    public void setupNPC(String title, String name, CharacterType type, String appearance, Integer level, 
+        Integer mass, String species, Vector<MovementType> movementType, Integer health, Integer wounds, 
+        Integer bruises, Vector<String> weaknesses, Vector<String> defenses, CharacterTraitsAndTalents traitsAndTalents, 
+        Vector<Attack> attacks, Vector<Ability> abilities, Vector<Integer> aura, Vector<Anomaly> anomalies, 
+        Vector<Effect> currentEffects, String other, Vector<Item> inventory, NPCAttitude attitude, 
+        Boolean consciousness, NPCModifier modifier, Vector<Integer> actions, Vector<Integer> reactions) {
         
         setupBaseCharacter(type, level, mass, 
             movementType, health, wounds, bruises, 
             weaknesses, defenses, traitsAndTalents, 
-            attacks, abilities, aura, potential, 
-            anomalies, currentEffects, other, inventory);
+            attacks, abilities, aura, anomalies, 
+            currentEffects, other, inventory, 
+            actions, reactions);
 
         this.modifier = (modifier != null) ? modifier : generateModifier();
         this.attitude = (attitude != null) ? attitude : generateAttitude();
-        this.rational = (rational != null) ? rational : generateRationale();
+        this.consciousness = (consciousness != null) ? consciousness : generateConsciousness();
         this.species = (species != null && !species.isEmpty()) ? species : generateNPCSpecies();
         this.name = (name != null && !name.isEmpty()) ? name : generateCharacterName();
         this.title = (title != null) ? title : generateNPCTitle();
@@ -70,7 +100,7 @@ public class NPC  extends BaseCharacter {
         }
     }
 
-    private boolean generateRationale() { // josh todo base rationale on species type (playable = rational 99%, and vice-versa?)
+    private boolean generateConsciousness() { // josh todo base consciousness on species type?
         return Math.random() < 0.8; // 80% chance
     }
 
@@ -81,7 +111,7 @@ public class NPC  extends BaseCharacter {
 
     private String generateNPCTitle() {
         return "A Basic Guard"; // josh todo 
-        // make title based on type, species, level, and modifier, anomalies, and rationale
+        // make title based on type, species, level, and modifier, anomalies, and consciousness
     }
 
     protected String generateNPCAppearance() { // josh pass in values

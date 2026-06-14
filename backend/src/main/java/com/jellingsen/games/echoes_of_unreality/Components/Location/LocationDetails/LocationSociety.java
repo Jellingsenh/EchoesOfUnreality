@@ -5,7 +5,17 @@ import java.util.Vector;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.jellingsen.games.echoes_of_unreality.Components.Location.CompressedLocation;
 
-@JsonPropertyOrder({ "culture", "history", "religion", "technology", "governemnt", "economy", "secrets", "allies", "enemies" })
+@JsonPropertyOrder({ 
+    "culture", 
+    "history", 
+    "religion", 
+    "technology", 
+    "governemnt", 
+    "economy", 
+    "secrets", 
+    "allies", 
+    "enemies" 
+})
 public class LocationSociety {
     public String religion; // prominent religions and/or deities in the area
     public String technology; // what type of technology is available here

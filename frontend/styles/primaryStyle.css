@@ -1,0 +1,78 @@
+html {
+    background-color: darkgrey;
+}
+
+body {
+    margin: 0;
+}
+
+.loading {
+    width: 20px;
+    height: 20px;
+    border: 5px solid #f3f3f3; /* Light grey */
+    border-top: 5px solid #3498db; /* Blue */
+    border-radius: 50%;
+    animation: spin 1s ease-in-out infinite;
+    margin: 1% auto; /* Center the spinner horizontally */
+    /* z-index: 5; */
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.fadeInItem {
+    animation: fadeIn .2s;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* .fadeItem {
+    animation: fadeOut 1s, fadeIn 1s;
+} */
+
+/* @keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+} */
+
+/* .testborder {
+    border: 2px solid red;
+} */
+
+.no-scrollbar {
+    /* IE and Edge */
+    -ms-overflow-style: none;
+    
+    /* Firefox */
+    scrollbar-width: none;
+    
+    /* Chrome, Safari and Opera */
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+html, body {
+    /* Hide scrollbars but allow scrolling */
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+}
+
+html::-webkit-scrollbar, 
+body::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+}

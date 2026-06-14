@@ -10,17 +10,36 @@ Point your JAVA_HOME variable at your Maven jdk (add 'export JAVA_HOME="/opt/hom
 <br>
 Install MongoDB (brew tap mongodb/brew && brew install mongodb-community)
 <br>
-Set db path in MongoDB config file (/opt/homebrew/etc/mongod.conf) to a valid directory on your machine (ex: {your_path_here}/EchoesOfUnreality/database/)
+Set dbPath in MongoDB config file (/opt/homebrew/etc/mongod.conf) to a valid directory on your machine (ex: {your_path_here}/EchoesOfUnreality/database/MongoDatabase)
 <br>
+
 Install Npm (brew install node)
 <br>
-Create ReactTs project with Vite (npm create vite@latest frontend -- --template react-ts)
+Install react dependencies: 
 <br>
-navigate to the EchoesOfUnreality directory
+npm install react-intersection-observer
 <br>
-chmod +x startEchoes.command
+npm install @base-ui/react
 <br>
-./startEchoes.command
+(npm install react-select)
+<br>
+npm install @mui/icons-material @mui/material @emotion/react @emotion/styled
+<br>
+npm install mui-tiptap
+<br>
+
+<br>
+Create React Typescript project with Vite (npm create vite@latest frontend -- --template react-ts)
+<br>
+navigate to the EchoesOfUnreality directory (cd {your_path_here}/EchoesOfUnreality)
+<br>
+Grant permissions to the start script (chmod +x startEchoes.command)
+<br>
+Start the program (./startEchoes.command)
+<br>
+<br>
+<br>
+<br>
 <br>
 HOSTING:
 <br>

@@ -7,10 +7,28 @@ import com.jellingsen.games.echoes_of_unreality.Components.Location.LocationDeta
 import com.jellingsen.games.echoes_of_unreality.Components.Location.LocationDetails.LocationSociety;
 import com.jellingsen.games.echoes_of_unreality.Components.Location.LocationEnums.LocationModifier;
 import com.jellingsen.games.echoes_of_unreality.Components.Location.LocationEnums.LocationSize;
+import com.jellingsen.games.echoes_of_unreality.Components.Location.LocationEnums.LocationType;
 
-@JsonPropertyOrder({ "name", "type", "appearance", "summary", "size", "modifier", "nature", "society", "anomalies", "parent", "positionOnParent", "children" })
-public class Location extends CompressedLocation {
-    // CompressedLocation has type & name
+@JsonPropertyOrder({ 
+    "name", 
+    "type", 
+    "appearance", 
+    "summary", 
+    "size", 
+    "modifier", 
+    "nature", 
+    "society", 
+    "anomalies", 
+    "parent", 
+    "position", 
+    "children" })
+public class Location {
+    // _ID is created by the database. Used for updates.
+    public String _id;
+
+    // NAME & TYPE (unique key)
+    public String name;
+    public LocationType type;
 
     // VARIATIONS
     public LocationModifier modifier;
@@ -19,7 +37,7 @@ public class Location extends CompressedLocation {
     // STRUCTURE
     public CompressedLocation parent;
     public LocationSize size; // relative to 'standard' size for the type.
-    public Vector<Integer> positionOnParent;
+    public Vector<Integer> position; // position on parent
     public Vector<CompressedLocation> children;
 
     // NATURE
