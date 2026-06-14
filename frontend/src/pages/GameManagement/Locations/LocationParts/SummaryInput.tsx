@@ -23,7 +23,7 @@ export default function SummaryInput({
         display: 'flex',
         flexDirection: 'row',
         gap: '10px',
-        minWidth: '250px',
+        // minWidth: '250px',
     }}>
         {!viewMode && <LockInputButton 
             // lockedVariable="summary"

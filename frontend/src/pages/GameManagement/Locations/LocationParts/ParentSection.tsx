@@ -157,7 +157,8 @@ export default function ParentSection({
         </div>}
         <div style={{
             width: '100%',
-            overflowX: 'auto',
+            minWidth: 'max-content',
+            // overflowX: 'auto',
         }}>
             <OutlinedDiv 
                 label={'Parent'}
@@ -169,29 +170,30 @@ export default function ParentSection({
                     flexDirection: 'column',
                     // justifyContent: 'center',
                     gap: '5px',
-                    // width: '100%',
+                    // minWidth: 'max-content',
                     // overflowX: 'auto',
                     marginBottom: '5px',
                 }}>
-                    <div className='no-scrollbar' style={{
+                    <div style={{
                         // border:'1px solid grey',
                         display: 'flex',
                         flexDirection: 'row',
-                        justifyContent: 'left',
+                        justifyContent: 'center',
                         // marginLeft: '20%',
                         gap: '5px',
-                        width: '100%',
-                        overflowX: 'auto',
+                        // width: '100%',
+                        // overflowX: 'auto',
                     }}>
                         <div style={{
                             marginTop: '-5px',
                             marginLeft:'5px',
-                            minWidth: 'max-content',
+                            // minWidth: 'max-content',
                         }}>
                             <OutlinedDiv locked={true} 
                                 label="Name">
                                 <div style={{
-                                    paddingRight: '5px',
+                                    minWidth: 40, // keep label visible
+                                    textAlign: 'center',
                                 }}>
                                     {currentNameInput}
                                 </div>
@@ -204,7 +206,8 @@ export default function ParentSection({
                             <OutlinedDiv locked={true} 
                                 label="Type">
                                 <div style={{
-                                    paddingRight: '5px',
+                                    minWidth: 40, // keep label visible
+                                    textAlign: 'center',
                                 }}>
                                     {setFirstLetterUpperCase(currentTypeInput)}
                                 </div>
@@ -227,17 +230,17 @@ export default function ParentSection({
                         </button>
                         } */}
                     </div>
-                    {!viewMode && !currentInputLocked && <div className='no-scrollbar' style={{
+                    {!viewMode && !currentInputLocked && <div style={{
                         display: 'flex',
                         flexDirection: 'row',
                         gap: '5px',
-                        justifyContent: 'left',
+                        justifyContent: 'center',
                         // border:'1px solid red',
                         marginLeft: '10px',
                         marginTop: '5px',
                         marginBottom: '-5px',
                         // transform: 'translateX(-25%)',
-                        overflowX: 'auto',
+                        // overflowX: 'auto',
                         width: '100%',
                     }}>
                         <button style={{
@@ -260,11 +263,12 @@ export default function ParentSection({
                         </button>
                     </div>}
                 </div> : 
-                <div className='no-scrollbar' style={{
+                <div style={{
                     display: 'flex',
                     flexDirection: 'row',
                     gap: '5px',
-                    overflowX: 'auto',
+                    // width: '100%',
+                    // overflowX: 'auto',
                     // marginTop: '5px',
                 }}>
                     <div style={{

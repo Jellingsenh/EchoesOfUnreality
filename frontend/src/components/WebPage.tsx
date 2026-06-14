@@ -83,6 +83,8 @@ export default function WebPage({
             </DialogTitle>}
             <DialogContent className='no-scrollbar' sx={{ 
                 mt: 2,
+                paddingX: '0px',
+                marginX: '20px',
             }}>
                 {modal}
             </DialogContent>

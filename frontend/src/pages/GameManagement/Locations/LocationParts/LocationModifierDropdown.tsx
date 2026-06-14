@@ -20,7 +20,13 @@ export default function LocationModifierDropdown({
     viewMode: boolean,
     // createMode: boolean,
 }) {
-    return <>
+    return <div style={{
+        display: 'flex',
+        flexDirection: 'row',
+        gap: '10px',
+        // width: '100%',
+        minWidth: 'max-content',
+    }}>
         {!viewMode && <LockInputButton 
             // lockedVariable="modifier"
             locked={currentInputLocked}
@@ -28,11 +34,12 @@ export default function LocationModifierDropdown({
         />}
         <FormControl 
             focused={viewMode || currentInputLocked}
-            fullWidth
+            // fullWidth
             sx={{ 
-            mt: '5px',
-            minWidth: 130,
-            maxWidth: 130,
+                mt: '5px',
+                // width: 'max-content',
+                // minWidth: 80,
+                // maxWidth: 130,
             }} 
             size="small"
         >
@@ -45,6 +52,15 @@ export default function LocationModifierDropdown({
                     setCurrentInput(input.target.value)
                 }}
                 label="Modifier"
+                sx={{
+                    width: 'max-content',
+                    minWidth: 70, // keep label visible
+                    textAlign: "center",
+                    '& .MuiSelect-select': (currentInputLocked || viewMode) ? { paddingRight: '14px !important' } : undefined, // Removes padding space
+                    // "& .MuiSelect-select": {
+                    //     textAlign: "center", 
+                    // }
+                }}
                 slotProps={{ input: { readOnly: currentInputLocked || viewMode } }} 
                 IconComponent={ (currentInputLocked || viewMode) ? () => null : undefined } // Removes icon
             >
@@ -57,5 +73,5 @@ export default function LocationModifierDropdown({
             <MenuItem value={'UNREAL'}>Unreal</MenuItem>
             </Select>
         </FormControl>
-    </>
+    </div>
 }

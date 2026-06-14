@@ -20,8 +20,8 @@ export default function AppearanceInput({
         display: 'flex',
         flexDirection: 'row',
         gap: '10px',
-        justifyContent: 'center',
-        minWidth: '250px',
+        // justifyContent: 'left',
+        // minWidth: '250px',
     }}>
         {!viewMode && <div style={{
             marginTop: '16px',

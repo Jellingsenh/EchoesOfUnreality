@@ -21,7 +21,7 @@ export default function LocationAnomalyInput({
         display: 'flex',
         flexDirection: 'row',
         gap: '10px',
-        minWidth: '250px',
+        // minWidth: '250px',
     }}>
         {!viewMode && <div style={{
             marginTop: '20px',
@@ -42,7 +42,7 @@ export default function LocationAnomalyInput({
             >
                 <div style={{
                     // border:'1px solid green', 
-                    width: '100%',
+                    // width: '100%',
                     alignSelf: 'start',
                     gap: '10px',
                     display: 'flex',
@@ -117,12 +117,12 @@ export default function LocationAnomalyInput({
                             {'Remove'}
                         </button>}
                     </div>))}
-                    <div className='no-scrollbar' style={{
+                    <div style={{
                         display: 'flex',
                         flexDirection: 'row',
                         gap: '5px',
                         // marginTop: '-10px',
-                        overflowX: 'auto',
+                        // overflowX: 'auto',
                     }}>
                         <div style={{
                             minWidth: 'max-content',

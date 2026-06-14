@@ -32,6 +32,8 @@ export default function EnvironmentInput({
                 display: 'flex',
                 flexDirection: 'row',
                 gap: '10px',
+                minWidth: '300px',
+                // width: '100%',
             }}>
                 <TextField 
                     fullWidth
@@ -89,6 +91,7 @@ export default function EnvironmentInput({
                 display: 'flex',
                 flexDirection: 'row',
                 gap: '5px',
+                alignSelf: (currentInput && currentInput.length > 0) ? 'center' : undefined,
             }}>
                 {((currentInput && currentInput.length > 0) ? '' : 'No Environments.  ')}
                 {!viewMode && !currentInputLocked && <button style={{

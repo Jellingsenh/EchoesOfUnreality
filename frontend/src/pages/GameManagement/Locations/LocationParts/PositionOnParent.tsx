@@ -66,10 +66,27 @@ export default function PositionOnParent({
                     <TextField
                         focused={viewMode || currentInputLocked}
                         label={currentOrbitsParent ? 'R' : 'X'}
-                        type={viewMode ? 'text' : 'number'}
+                        type={'number'}
                         size='small'
-                        sx={{ width: 75 }}
-                        slotProps={{ htmlInput: { readOnly: viewMode || currentInputLocked } }} 
+                        sx={{
+                            width: 75,
+                            input: { 
+                                textAlign: 'center',
+                            },
+                            '& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button': (viewMode || currentInputLocked) ? {
+                                display: 'none',
+                                WebkitAppearance: 'none',
+                                margin: 0,
+                            } : undefined,
+                            '& input[type=number]': (viewMode || currentInputLocked) ? {
+                                MozAppearance: 'textfield',
+                            }: undefined,
+                        }}
+                        slotProps={{ htmlInput: { 
+                            min: 0,
+                            max: 999,
+                            readOnly: viewMode || currentInputLocked 
+                        } }} 
                         value={currentXInput ?? 0}
                         onChange={(input) => {
                             setCurrentXInput(Number(input.target.value));
@@ -78,10 +95,27 @@ export default function PositionOnParent({
                     <TextField
                         focused={viewMode || currentInputLocked}
                         label={currentOrbitsParent ? 'Θ' : 'Y'}
-                        type={viewMode ? 'text' : 'number'}
+                        type={'number'}
                         size='small'
-                        sx={{ width: 75 }}
-                        slotProps={{ htmlInput: { readOnly: viewMode || currentInputLocked } }} 
+                        sx={{ 
+                            width: 75,
+                            input: { 
+                                textAlign: 'center',
+                            },
+                            '& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button': (viewMode || currentInputLocked) ? {
+                                display: 'none',
+                                WebkitAppearance: 'none',
+                                margin: 0,
+                            } : undefined,
+                            '& input[type=number]': (viewMode || currentInputLocked) ? {
+                                MozAppearance: 'textfield',
+                            }: undefined,
+                        }}
+                        slotProps={{ htmlInput: { 
+                            min: 0,
+                            max: 999,
+                            readOnly: viewMode || currentInputLocked 
+                        } }} 
                         value={currentYInput ?? 0}
                         onChange={(input) => {
                             setCurrentYInput(Number(input.target.value));

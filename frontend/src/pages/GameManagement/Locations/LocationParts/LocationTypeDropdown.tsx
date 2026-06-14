@@ -19,7 +19,13 @@ export default function LocationTypeDropdown({
     viewMode: boolean,
     // createMode: boolean,
 }){
-    return <>
+    return <div style={{
+        display: 'flex',
+        flexDirection: 'row',
+        gap: '10px',
+        // width: '100%',
+        minWidth: 'max-content',
+    }}>
         {!viewMode && <LockInputButton 
             // lockedVariable="type"
             locked={currentInputLocked}
@@ -27,12 +33,13 @@ export default function LocationTypeDropdown({
         />}
         <FormControl 
             focused={viewMode || currentInputLocked}
-            fullWidth
+            // fullWidth
             sx={{ 
                 mt: '5px',
+                // width: 'max-content',
                 // mb: '5px',
-                minWidth: 125,
-                maxWidth: 125,
+                // minWidth: 125,
+                // maxWidth: 125,
             }} 
             size="small"
         >
@@ -40,10 +47,16 @@ export default function LocationTypeDropdown({
             <Select
                 slotProps={{ input: { readOnly: currentInputLocked || viewMode } }} 
                 IconComponent={ (currentInputLocked || viewMode) ? () => null : undefined } // Removes icon
-                // sx={{
-                //     '& .MuiSelect-select': { paddingRight: '14px !important' }, // Removes padding space
-                // }}
                 // aria-describedby={`type-helper-text`}
+                sx={{
+                    width: 'max-content',
+                    // minWidth: 70, // keep label visible
+                    textAlign: "center",
+                    '& .MuiSelect-select': (currentInputLocked || viewMode) ? { paddingRight: '14px !important' } : undefined, // Removes padding space
+                    // "& .MuiSelect-select": {
+                    //     textAlign: "center", 
+                    // }
+                }}
                 labelId={`type-label`}
                 id={'type'}
                 value={currentInput ?? ''}
@@ -52,23 +65,23 @@ export default function LocationTypeDropdown({
                 }}
                 label="Type"
             >
-            <MenuItem value={'PLACE'}>Place</MenuItem>
-            <MenuItem value={'CITY'}>City</MenuItem>
-            <MenuItem value={'AREA'}>Area</MenuItem>
-            <MenuItem value={'COUNTRY'}>Country</MenuItem>
-            <MenuItem value={'CONTINENT'}>Continent</MenuItem>
-            <MenuItem value={'FEATURE'}>Feature</MenuItem>
-            <MenuItem value={'MOON'}>Moon</MenuItem>
-            <MenuItem value={'PLANET'}>Planet</MenuItem>
-            <MenuItem value={'STAR'}>Star</MenuItem>
-            <MenuItem value={'SPACE'}>Space</MenuItem>
-            <MenuItem value={'GALAXY'}>Galaxy</MenuItem>
-            <MenuItem value={'UNIVERSE'}>Universe</MenuItem>
-            <MenuItem value={'DIMENSION'}>Dimension</MenuItem>
+                <MenuItem value={'PLACE'}>Place</MenuItem>
+                <MenuItem value={'CITY'}>City</MenuItem>
+                <MenuItem value={'AREA'}>Area</MenuItem>
+                <MenuItem value={'COUNTRY'}>Country</MenuItem>
+                <MenuItem value={'CONTINENT'}>Continent</MenuItem>
+                <MenuItem value={'FEATURE'}>Feature</MenuItem>
+                <MenuItem value={'MOON'}>Moon</MenuItem>
+                <MenuItem value={'PLANET'}>Planet</MenuItem>
+                <MenuItem value={'STAR'}>Star</MenuItem>
+                <MenuItem value={'SPACE'}>Space</MenuItem>
+                <MenuItem value={'GALAXY'}>Galaxy</MenuItem>
+                <MenuItem value={'UNIVERSE'}>Universe</MenuItem>
+                <MenuItem value={'DIMENSION'}>Dimension</MenuItem>
             </Select>
             {/* <FormHelperText id={`type-helper-text`}>
             {viewModeActive ? ' ' : 'Name & type must be unique'}
             </FormHelperText> */}
         </FormControl>
-    </>
+    </div>
 }

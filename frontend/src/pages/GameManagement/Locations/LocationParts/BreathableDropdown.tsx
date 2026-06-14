@@ -22,9 +22,10 @@ export default function BreathableDropdown({
         focused={viewMode || currentInputLocked} 
         fullWidth
         sx={{ 
-        mt: '5px',
-        minWidth: 155,
-        maxWidth: 155,
+            mt: '5px',
+            width: 'max-content',
+            // minWidth: 155,
+            // maxWidth: 155,
         }} 
         size="small"
     >
@@ -37,6 +38,13 @@ export default function BreathableDropdown({
                 setCurrentInput(input.target.value === 'Breathable')
             }}
             label="Breathable"
+            sx={{
+                textAlign: "center",
+                '& .MuiSelect-select': (currentInputLocked || viewMode) ? { paddingRight: '14px !important' } : undefined, // Removes padding space
+                // "& .MuiSelect-select": {
+                //     textAlign: "center", 
+                // }
+            }}
             slotProps={{ input: { readOnly: currentInputLocked || viewMode } }} 
             IconComponent={ (currentInputLocked || viewMode) ? () => null : undefined } // Removes icon
         >

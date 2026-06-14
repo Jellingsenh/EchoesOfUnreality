@@ -15,6 +15,7 @@ import PositionOnParent from './LocationParts/PositionOnParent';
 import LocationSizeDropdown from './LocationParts/LocationSizeDropdown';
 
 export default function ViewEditLocationsModal({
+   isMobile,
    currentLocation, 
    viewMode,
    createMode,
@@ -108,6 +109,7 @@ export default function ViewEditLocationsModal({
    endOfList,
    refreshLocations,
 }:{
+   isMobile: boolean,
    currentLocation: {name: string, type: string} | null, 
    viewMode: boolean,
    createMode: boolean,
@@ -329,21 +331,29 @@ export default function ViewEditLocationsModal({
          </div> : 
          <>
             {/* INPUTS */}
-            <div style={{
+            <div className='no-scrollbar' style={{
                display: 'flex',
                flexDirection: 'column',
-               padding: '5px',
-               // overflowY: 'auto',
+               // padding: '5px',
+               // border: '1px solid red',
+               minWidth: 'max-content',
+               // marginLeft: '0px',
+               // marginRight: '0px',
+               // width: '100%',
                // overflowX: 'hidden',
+               // marginLeft: '-10px',
+               // marginRight: '-20px',
+               // paddingRight: '20px',
 
             }}>
                {/* NAME|TYPE|SIZE|MODIFIER */}
-               <div className='no-scrollbar' style={{
+               <div style={{
                   display: 'flex',
-                  flexDirection: 'row',
+                  // flexDirection: 'row',
+                  // justifyContent: 'left',
                   gap: '10px',
-                  width: '100%',
-                  overflowX: 'auto',
+                  // width: '100%',
+                  // overflowX: 'auto',
                }}>
                   <NameInput currentInput={locationName}
                      setCurrentInput={setLocationName}
@@ -387,11 +397,13 @@ export default function ViewEditLocationsModal({
                   display: 'flex',
                   flexDirection: 'row',
                   gap: '10px',
+                  minWidth: 'max-content',
+                  // border: '2px solid orange',
                }}>
                   {/* NATURE & SOCIETY */}
                   <div style={{
-                     width: '100%',
-                     minWidth: '250px',
+                     width: '60%',
+                     minWidth: 'max-content',
                      display: 'flex',
                      flexDirection: 'column',
                   }}>
@@ -435,9 +447,10 @@ export default function ViewEditLocationsModal({
                   </div>
                   {/* PARENT & CHILDREN */}
                   <div style={{
-                     // width: '30%',
+                     width: '40%',
                      display: 'flex',
                      flexDirection: 'column',
+                     minWidth: 'max-content',
                      // paddingRight: '10px',
                   }}>
                      <ParentSection currentNameInput={locationParentName}

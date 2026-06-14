@@ -22,9 +22,10 @@ export default function GravityDropdown({
         focused={viewMode || currentInputLocked}
         fullWidth
         sx={{ 
-        mt: '5px',
-        minWidth: 125,
-        maxWidth: 125,
+            mt: '5px',
+            minWidth: 70, // ensure label always visible
+            // maxWidth: 125,
+            width: 'max-content',
         }} 
         size="small"
     >
@@ -37,6 +38,13 @@ export default function GravityDropdown({
                 setCurrentInput(input.target.value)
             }}
             label="Gravity"
+            sx={{
+                textAlign: "center",
+                '& .MuiSelect-select': (currentInputLocked || viewMode) ? { paddingRight: '14px !important' } : undefined, // Removes padding space
+                // "& .MuiSelect-select": {
+                //     textAlign: "center", 
+                // }
+            }}
             slotProps={{ input: { readOnly: currentInputLocked || viewMode } }} 
             IconComponent={ (currentInputLocked || viewMode) ? () => null : undefined } // Removes icon
         >

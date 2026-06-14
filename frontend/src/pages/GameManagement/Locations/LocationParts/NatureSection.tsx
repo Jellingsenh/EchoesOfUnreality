@@ -65,11 +65,12 @@ export default function NatureSection({
                     margin: '5px',
                     // overflowX: 'auto',
                 }}>
-                    <div className='no-scrollbar' style={{
+                    <div style={{
                         display: 'flex',
                         flexDirection: 'row',
+                        justifyContent: 'center',
                         gap: '5px',
-                        overflowX: 'auto',
+                        // overflowX: 'auto',
                         // marginTop: '5px',
                         // marginBottom: '5px',
                     }}>
@@ -118,11 +119,11 @@ export default function NatureSection({
                         {'Remove nature'}
                     </button>}
                 </div> : 
-                <div className='no-scrollbar' style={{
+                <div style={{
                     display: 'flex',
                     flexDirection: 'row',
                     gap: '5px',
-                    overflowX: 'auto',
+                    // overflowX: 'auto',
                     // margin: '5px',
                 }}>
                     <div style={{

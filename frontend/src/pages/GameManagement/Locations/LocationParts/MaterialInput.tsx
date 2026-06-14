@@ -35,6 +35,7 @@ export default function MaterialInput({
                 display: 'flex',
                 flexDirection: 'row',
                 gap: '10px',
+                minWidth:'300px',
             }}>
                 <TextField 
                     fullWidth
@@ -92,6 +93,7 @@ export default function MaterialInput({
                 display: 'flex',
                 flexDirection: 'row',
                 gap: '5px',
+                alignSelf: (currentInput && currentInput.length > 0) ? 'center' : undefined,
             }}>
                 {((currentInput && currentInput.length > 0) ? '' : 'No Materials.  ')}
                 {!viewMode && !currentInputLocked && <button style={{

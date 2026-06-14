@@ -90,6 +90,7 @@ export default function SocietySection({
                     marginLeft: '5px',
                     marginRight: '5px',
                     marginBottom: '-5px',
+                    minWidth: '320px',
                 }}>
                     {/* CULTURE */}
                     <SocietyParts 
@@ -205,12 +206,12 @@ export default function SocietySection({
                         </button>}
                     </div>
                 </div> : 
-                <div className='no-scrollbar' style={{
+                <div style={{
                     display: 'flex',
                     flexDirection: 'row',
                     gap: '5px',
                     // minWidth: 'max-content',
-                    overflowX: 'auto',
+                    // overflowX: 'auto',
                 }}>
                     <div style={{
                         minWidth: 'max-content',

@@ -1,4 +1,4 @@
-SETUP INSTRUCTIONS (MacOS):
+SETUP INSTRUCTIONS (Unix):
 <br>
 Open terminal
 <br>
@@ -13,22 +13,21 @@ Install MongoDB (brew tap mongodb/brew && brew install mongodb-community)
 Set dbPath in MongoDB config file (/opt/homebrew/etc/mongod.conf) to a valid directory on your machine (ex: {your_path_here}/EchoesOfUnreality/database/MongoDatabase)
 <br>
 
-Install Npm (brew install node)
+Install Npm & React & other Node dependencies:
 <br>
-Install react dependencies: 
-<br>
-npm install react-intersection-observer
+brew install node
 <br>
 npm install @base-ui/react
 <br>
-(npm install react-select)
+npm install react-intersection-observer
+<br>
+npm install react-select
 <br>
 npm install @mui/icons-material @mui/material @emotion/react @emotion/styled
 <br>
 npm install mui-tiptap
 <br>
 
-<br>
 Create React Typescript project with Vite (npm create vite@latest frontend -- --template react-ts)
 <br>
 navigate to the EchoesOfUnreality directory (cd {your_path_here}/EchoesOfUnreality)
@@ -38,10 +37,15 @@ Grant permissions to the start script (chmod +x startEchoes.command)
 Start the program (./startEchoes.command)
 <br>
 <br>
+Now, the database, backend, and frontend should be running.
+<br>
+Access frontend at http://localhost:2012/echoesofunreality.com (will be updated).
 <br>
 <br>
+As of June 14, 2026, 
 <br>
-HOSTING:
+<br>
+HOSTING (tbd):
 <br>
 nginx
 <br>

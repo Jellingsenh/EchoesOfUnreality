@@ -29,7 +29,7 @@ export default function NameInput({
             variant='outlined' 
             size='small'
             sx={{
-            minWidth: 180,
+            // minWidth: 180,
             // Root text color // JOSH HERE FINISH COLORS THEN KEEP SETTIN GUP
             // input: { color: 'blue' },
             // Label color

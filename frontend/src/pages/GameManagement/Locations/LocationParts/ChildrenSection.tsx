@@ -143,7 +143,8 @@ export default function ChildrenSection({
         </div>}
         <div style={{
             width: '100%',
-            overflowX: 'auto',
+            minWidth: 'max-content',
+            // overflowX: 'auto',
         }}>
             <OutlinedDiv 
                 label={'Children'}
@@ -153,6 +154,7 @@ export default function ChildrenSection({
                     // border:'1px solid grey',
                     display: 'flex',
                     flexDirection: 'column',
+                    // justifyContent: 'center',
                     // placeItems: 'center',
                     // marginLeft: '10%',
                     // gridTemplateColumns: 'repeat(2, 50%)',
@@ -163,17 +165,17 @@ export default function ChildrenSection({
                 }}>
                     {/* map children */}
                     {currentInput?.map((child, index) => (
-                    <div className='no-scrollbar' key={index} style={{
+                    <div key={index} style={{
                         // border:'1px solid grey',
                         display: 'flex',
                         flexDirection: 'row',
                         gap: '5px',
-                        justifyContent: 'left',
+                        justifyContent: 'center',
                         // alignItems: 'center',
                         marginTop: '-5px',
                         // marginBottom: '5px',
                         width: '100%',
-                        overflowX: 'auto',
+                        // overflowX: 'auto',
                         overflowY: 'hidden',
                     }}>
                         <div style={{
@@ -184,7 +186,8 @@ export default function ChildrenSection({
                             <OutlinedDiv locked={true} 
                                 label="Name">
                                 <div style={{
-                                    paddingRight: '5px',
+                                    minWidth: 40, // keep label visible
+                                    textAlign: 'center',
                                 }}>
                                     {child.name}
                                 </div>
@@ -198,7 +201,8 @@ export default function ChildrenSection({
                             <OutlinedDiv locked={true} 
                                 label="Type">
                                 <div style={{
-                                    paddingRight: '5px',
+                                    minWidth: 40, // keep label visible
+                                    textAlign: 'center',
                                 }}>
                                     {setFirstLetterUpperCase(child.type)}
                                 </div>
@@ -220,12 +224,12 @@ export default function ChildrenSection({
                         </div>
                     </div>))}
                 </div>
-                <div className='no-scrollbar' style={{
+                <div style={{
                     display: 'flex',
                     flexDirection: 'row',
-                    justifyContent: 'left',
+                    justifyContent: (currentInput && currentInput.length > 0) ? 'center' : 'left',
                     gap: '5px',
-                    overflowX: 'auto',
+                    // overflowX: 'auto',
                     // marginTop: '5px',
                     marginLeft: '5px',
                     // marginLeft: (currentInput && currentInput.length > 0) ? '10%' : '0px',
