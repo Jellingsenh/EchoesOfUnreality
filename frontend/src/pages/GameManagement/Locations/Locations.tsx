@@ -14,6 +14,7 @@ import LockUnlockAllButton from "./LocationParts/LockUnlockAllButton"
 import RandomizeUnlockedButton from "./LocationParts/RandomizeUnlockedButton"
 import SetCurrentButton from "./LocationParts/SetCurrentButton"
 import EditSaveButton from "./LocationParts/EditSaveButton"
+import DeleteLocationButton from "./LocationParts/DeleteLocationButton"
 
 Root.render(
   <StrictMode>
@@ -30,7 +31,7 @@ function Locations() {
   const [doRefresh, setDoRefresh] = useState(false)
 
   // modal
-  const [editMode, setEditMode] = useState('VIEW') // or 'EDIT' or 'CREATE'
+  const [editMode, setEditMode] = useState('VIEW') // 'VIEW' or 'EDIT' or 'CREATE'
   const [isModalHidden, setModalHidden] = useState(true)
 
   // secondary modal
@@ -53,7 +54,7 @@ function Locations() {
   // const [parentSelectMode, setParentSelectMode] = useState(false)
 
   const [sortBy, setSortBy] = useState('TIME') // NAME, TYPE, or TIME
-  const [descending, setDescending] = useState(false)
+  const [descending, setDescending] = useState(true)
 
   // data variables
   const [loading, setLoading] = useState(false) // loading state
@@ -124,6 +125,7 @@ function Locations() {
   }
 
   // main location variables
+  const[locationId, setLocationId] = useState<string | null>(null)
   const [locationName, setLocationName] = useState<string | null>(null)
   const [locationType, setLocationType] = useState<string | null>(null)
   const [locationAppearance, setLocationAppearance] = useState<string | null>(null)
@@ -333,8 +335,22 @@ function Locations() {
     };
   }, [loadMoreInView])
   
-  // SAVE LOCATION
+  // SAVE & EDIT LOCATION
+  const refreshLocations = () => {
+    // console.log('new location added, list ended loading')
+    console.log('refreshing...')
+    if (('' !== searchStr)
+      || typeFilter      
+      || breathableFilter
+      || (sortBy !== 'TIME')
+      || !descending) {
+      resetLocationFilters()
+    }
+    setDoRefresh(prev => !prev)
+  }
+
   const jsonBody = {
+    "_id": locationId,
     "name": locationName,
     "type": locationType,
     "size": locationSize,
@@ -383,18 +399,117 @@ function Locations() {
             body: JSON.stringify(jsonBody),
             signal, // Attach the signal to the fetch request
             },);
-            if (!res.ok) console.error(res.statusText)
+            const result = await res.json();
+            if (result._id) {
+              console.log('Location saved successfully.')
+              setLocationId(result._id) 
+              setEditMode('VIEW') 
+              refreshLocations()
+            } else {
+              // josh add banner for error?
+              console.error('Res error posting data:', res.statusText);
+            } 
         } catch (error: any) {
             if (error.name === 'AbortError') {
-            // console.log('Request was canceled intentionally.');
-            return; // Gracefully exit
+              // console.log('Request was canceled intentionally.');
+              return; // Gracefully exit
             }
+            // setEditMode('CREATE') 
             console.error('Error posting data:', error);
         } finally {
             // clearTimeout(timeoutId);
         }
     }
     saveLocation()
+  }
+
+  function editLocationInDB() {
+    if (!jsonBody._id) {
+      console.error('No location id found for editing. Cannot edit location.')
+      return
+    }
+
+    const controller8 = new AbortController(); // stop call from happenig 2x
+    const { signal } = controller8;
+
+    async function editLocation() {
+        try {
+            const res = await fetch(baseApiUrl + '/editLocation', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(jsonBody),
+            signal, // Attach the signal to the fetch request
+            },);
+            const result = await res.json();
+            if (result._id) {
+              console.log('Location edited successfully.')
+                setEditMode('VIEW') 
+                refreshLocations()
+            } else {
+              // josh add banner for error?
+              console.error('Res error editing data:', res.statusText);
+            } 
+        } catch (error: any) {
+            if (error.name === 'AbortError') {
+            // console.log('Request was canceled intentionally.');
+            return; // Gracefully exit
+            }
+            // setEditMode('EDIT') 
+            console.error('Error editing data:', error);
+        } finally {
+            // clearTimeout(timeoutId);
+        }
+    }
+    editLocation()
+  }
+
+  function deleteLocationFromDB() {
+    if (!jsonBody._id) {
+      console.error('No location id found for editing. Cannot delete.')
+      return
+    }
+
+    if (!confirm('Are you sure you want to delete ' + jsonBody.name + '?')) {
+      return
+    }
+
+    const controller9 = new AbortController(); // stop call from happenig 2x
+    const { signal } = controller9;
+
+    async function deleteLocation() {
+        try {
+            const res = await fetch(baseApiUrl + '/deleteLocation', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(jsonBody),
+            signal, // Attach the signal to the fetch request
+            },);
+            const result = await res.json();
+            if (result) {
+                console.log('Location deleted successfully.')
+                // setEditMode('VIEW') 
+                refreshLocations()
+                setModalHidden(true)
+            } else {
+              // josh add banner for error?
+              console.error('Res error deleting data:', res.statusText);
+            } 
+        } catch (error: any) {
+            if (error.name === 'AbortError') {
+            // console.log('Request was canceled intentionally.');
+            return; // Gracefully exit
+            }
+            // setEditMode('EDIT') 
+            console.error('Error posting data:', error);
+        } finally {
+            // clearTimeout(timeoutId);
+        }
+    }
+    deleteLocation()
   }
 
   // RANDOMIZE UNLOCKED FIELDS
@@ -511,8 +626,8 @@ function Locations() {
             justifyContent: 'center',
             alignItems: 'center',
           }}
-          onClick={(e) => {
-            e.stopPropagation() // this stops the clickOut event
+          onClick={() => {
+            // e.stopPropagation() // this stops the clickOut event
             setEditMode('CREATE')
             setModalHidden(false)
           }}>
@@ -524,12 +639,12 @@ function Locations() {
   const ModalTitle = (<div style={{
     minWidth: '200px',
   }}>
-      {editMode === 'CREATE' || currentCompressedLocation == null ? 
+      {editMode === 'CREATE' || currentCompressedLocation === null ? 
         'Creating a new location' :  
       (editMode === 'VIEW' ? 
         'Viewing ' : 
         'Editing ') + 
-        currentCompressedLocation.name}
+        (locationName ?? 'location')}
   </div>);
 
   function addToExcludedList(name: string, type: string) {
@@ -545,17 +660,10 @@ function Locations() {
    const resetLocationFilters = () => {
       // console.log('resetLocationFilters...')
       setSearchStr('')
-      setDescending(false)
       setTypeFilter(null)
       setBreathableFilter(null)
       setSortBy('TIME')
-   }
-
-   const refreshLocations = () => {
-    // console.log('new location added, list ended loading')
-    console.log('refreshing...')
-    // resetLocationFilters()
-    setDoRefresh(prev => !prev)
+      setDescending(true)
    }
 
   const LocationModal = (<ViewEditLocationsModal 
@@ -574,6 +682,7 @@ function Locations() {
         newChildType={newChildType}
         addToExcludedListLocations={addToExcludedList}
         removeFromExcludedListLocations={removeFromExcludedList}
+        setLocationId={setLocationId}
         locationName={locationName}
         setLocationName={setLocationName}
         nameLocked={nameLocked}
@@ -657,76 +766,80 @@ function Locations() {
    );
 
    const ModalFooter = (<div className='no-scrollbar' style={{
-        // marginTop: 'auto',
-        // border:'1px solid grey',
-        // position: 'fixed',
-        display: 'flex',
-        flexDirection: 'row',
-        gap: '10px',
-        // marginRight: 'auto',
-        // justifyContent: 'center',
-        width: '100%',
-        marginLeft: '5px',
-        marginRight: '5px',
-        marginBottom: '3px',
-        marginTop: '3px',
-        // maxHeight: '20px',
-        // alignItems: 'center',
-        // transform: `scale(${1 / window.devicePixelRatio})`,
-        // minWidth: '100%',
-        overflowX: 'auto',
-    }}>
-        {/* VIEW IN MAP */}
-        <ViewInMapButton 
-          currentLocationName={currentCompressedLocation && currentCompressedLocation.name} 
-          viewMode={editMode === 'VIEW'}
-        />
-        <div style={{
-            // border:'1px solid green',
-            display: 'flex',
-            width: '100%',
-            marginLeft: '-5px',
-            marginRight: '-5px',
-        }}/>
-        {/* LOCK/UNLOCK ALL */}
-        <LockUnlockAllButton 
-            allInputsUnlocked={allInputsUnlocked}
-            unlockAllInputs={unlockAllInputs}
-            lockAllInputs={lockAllInputs}
-            viewMode={editMode === 'VIEW'}
-        />
-        {/* RANDOMIZE UNLOCKED */}
-        <RandomizeUnlockedButton 
-            viewMode={editMode === 'VIEW'}
-            randomizeUnlockedFields={randomizeUnlockedFields}
-        />
-        {/* SET CURRENT */}
-        <SetCurrentButton 
-            currentLocationName={currentCompressedLocation &&currentCompressedLocation.name}
-            viewMode={editMode === 'VIEW'}
-        />
-        {/* EDIT/SAVE */}
-        <EditSaveButton 
-            viewMode={editMode === 'VIEW'}
-            createMode={editMode === 'CREATE'}
-            locationName={locationName}
-            currentLocationName={currentCompressedLocation && currentCompressedLocation.name}
-            setEditMode={setEditMode}
-            saveLocationToDB={saveCurrentLocationToDB}
-        />
-    </div>);
+    // marginTop: 'auto',
+    // border:'1px solid grey',
+    // position: 'fixed',
+    display: 'flex',
+    flexDirection: 'row',
+    gap: '10px',
+    // marginRight: 'auto',
+    // justifyContent: 'center',
+    width: '100%',
+    marginLeft: '5px',
+    marginRight: '5px',
+    marginBottom: '3px',
+    marginTop: '3px',
+    // maxHeight: '20px',
+    // alignItems: 'center',
+    // transform: `scale(${1 / window.devicePixelRatio})`,
+    // minWidth: '100%',
+    overflowX: 'auto',
+  }}>
+    {/* VIEW IN MAP */}
+    {editMode === 'EDIT' ? 
+    <DeleteLocationButton 
+      currentLocationName={locationName ?? 'location'} 
+      deleteLocationFromDB={deleteLocationFromDB}
+    /> :
+    <ViewInMapButton 
+      currentLocationName={locationName ?? 'location'} 
+      viewMode={editMode === 'VIEW'}
+    />}
+    <div style={{
+      // border:'1px solid green', // spacer div
+      display: 'flex',
+      width: '100%',
+      marginLeft: '-5px',
+      marginRight: '-5px',
+    }}/>
+      {/* LOCK/UNLOCK ALL */}
+      <LockUnlockAllButton 
+        allInputsUnlocked={allInputsUnlocked}
+        unlockAllInputs={unlockAllInputs}
+        lockAllInputs={lockAllInputs}
+        viewMode={editMode === 'VIEW'}
+      />
+      {/* RANDOMIZE UNLOCKED */}
+      <RandomizeUnlockedButton 
+        viewMode={editMode === 'VIEW'}
+        randomizeUnlockedFields={randomizeUnlockedFields}
+      />
+      {/* SET CURRENT */}
+      <SetCurrentButton 
+        currentLocationName={locationName ?? 'location'}
+        viewMode={editMode === 'VIEW'}
+      />
+      {/* EDIT/SAVE */}
+      <EditSaveButton 
+        viewMode={editMode === 'VIEW'}
+        createMode={editMode === 'CREATE'}
+        locationName={locationName}
+        // currentLocationName={locationName ?? 'location'}
+        setEditMode={setEditMode}
+        saveLocationToDB={saveCurrentLocationToDB}
+        editLocationInDB={editLocationInDB}
+      />
+  </div>);
 
-    const modalOnClose = () => {
-      setCurrentCompressedLocation(null)
-      setNewParentName(null)
-      setNewParentType(null)
-      setNewChildName(null)
-      setNewChildType(null)
-      unlockAllInputs()
-      setExcludedListLocations([])
-      setModalHidden(true)
-      // resetLocationFilters() // only refresh on 2nd modal close
-      setLocationName(null) // not entirelly sure why I only need to null name, but all other fields are auto-nulled on close
+  const modalOnClose = () => {
+    setModalHidden(true)
+    setNewParentName(null)
+    setNewParentType(null)
+    setNewChildName(null)
+    setNewChildType(null)
+    unlockAllInputs()
+    setExcludedListLocations([])
+    // resetLocationFilters() // only refresh on 2nd modal close
   }
 
   function chooseLocationForRelative(location: {name: string, type: string}) {
@@ -799,7 +912,7 @@ function Locations() {
   />);
 
   function selectLocationForViewing(location: {name: string, type: string}) {
-    // console.log('selected location: ' + location.name + ', ' + location.type)
+    // console.log('selected location for viewing: ' + location.name + ', ' + location.type)
     setCurrentCompressedLocation(location)
     setExcludedListLocations([location])
     setEditMode('VIEW')
@@ -807,6 +920,8 @@ function Locations() {
   }
 
   function selectNewLocationForViewing(location: {name: string, type: string}) {
+        // console.log('selected new location for viewing: ' + location.name + ', ' + location.type)
+
     setNewParentName(null)
     setNewParentType(null)
     setNewChildName(null)
@@ -817,7 +932,8 @@ function Locations() {
     unlockAllInputs()
     // resetLocationFilters() // only reset on 2nd modal open and close
     
-    setLocationName(null)
+    // setLocationName(null)
+    // setLocationId(null)
 
     setEditMode('VIEW')
 

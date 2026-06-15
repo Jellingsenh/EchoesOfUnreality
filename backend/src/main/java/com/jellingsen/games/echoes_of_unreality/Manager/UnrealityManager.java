@@ -747,9 +747,18 @@ public class UnrealityManager {
         return returnStr;
     }
     
-    // USEFUL DATABASE LOCATION FUNCTIONS //
+    // DATABASE LOCATION FUNCTIONS //
 
     public Location saveLocationToDatabase(Location location) {
+        if (location == null) {
+            System.out.println("Error: Cannot save null location");
+            return null;
+        }
+        if (location.name == null || location.name.length() == 0 || location.type == null) {
+            System.out.println("Error: Cannot save location with missing or empty name or type");
+            return null;
+        }
+
         if (location.parent != null) {
             location.parent.charted = databaseConnection.isLocationInCollection(location.parent.name, location.parent.type);
             if (location.parent.charted) {
@@ -771,6 +780,72 @@ public class UnrealityManager {
         }
         return databaseConnection.createNewLocationSave(location);
     }  
+
+    public Location editLocationInDatabase(Location location) {
+        if (location == null) {
+            System.out.println("Error: Cannot edit null location");
+            return null;
+        }
+        if (location.name == null || location.name.length() == 0 || location.type == null) {
+            System.out.println("Error: Cannot edit location with missing or empty name or type");
+            return null;
+        }
+
+        if (location._id != null && location._id.length() > 0) {
+            if (location.parent != null) {
+                location.parent.charted = databaseConnection.isLocationInCollection(location.parent.name, location.parent.type);
+                if (location.parent.charted) {
+                    linkLocations(new Vector<CompressedLocation>(Arrays.asList(location.parent, compressLocation(location)))); // link to parent if parent already charted
+                }
+            }
+            
+            if (location.children != null) {
+                for (CompressedLocation chLoc : location.children) {
+                    if (!chLoc.charted) { 
+                        chLoc.charted = databaseConnection.isLocationInCollection(chLoc.name, chLoc.type); 
+                        if (chLoc.charted) {
+                            CompressedLocation loc = compressLocation(location);
+                            databaseConnection.unlinkChildFromAllOtherParents(chLoc, loc);
+                            linkLocations(new Vector<CompressedLocation>(Arrays.asList(loc, chLoc))); // link to child if child already charted
+                        }
+                    }
+                }
+            }
+            return databaseConnection.updateLocationSave(location);
+        } else {
+            System.out.println("Error: Cannot edit location that isn't in the database (missing or invalid _id)");
+            return null; // can't edit a location that isn't in the database
+        }
+    }
+
+    public boolean deleteLocationFromDatabase(Location location) {
+        if (location == null) {
+            System.out.println("Error: Cannot edit null location");
+            return false;
+        }
+        if (location.name == null || location.name.length() == 0 || location.type == null) {
+            System.out.println("Error: Cannot edit location with missing or empty name or type");
+            return false;
+        }
+        if (location._id == null || location._id.length() == 0) {
+            System.out.println("Error: Cannot delete location with missing or empty id");
+            return false;
+        }
+
+        if (location.parent != null) {
+            if (location.parent.charted) {
+                databaseConnection.unlinkParentFromDeletedChild(location.parent, compressLocation(location));
+            }
+        }
+        if (location.children != null) {
+            for (CompressedLocation chLoc : location.children) {
+                if (chLoc.charted) { 
+                    databaseConnection.unlinkChildFromDeletedParent(chLoc);
+                }
+            }
+        }
+        return databaseConnection.deleteLocationSave(location._id, location.name);
+    }
 
     public Location getLocationFromDatabase(CompressedLocation loc) {
         if (loc == null) return null;

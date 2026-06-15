@@ -25,6 +25,7 @@ export default function LocationFilters({
     setSearchStr: React.Dispatch<React.SetStateAction<string | null>>,
 }) {
     const [sortByPicked, setSortByPicked] = useState(false)
+    const [tempSearchStr, setTempSearchStr] = useState<string | null>(null)
 
     interface valueLabel {
         value: string,
@@ -100,7 +101,7 @@ export default function LocationFilters({
         breathableOptions[1] :
         null // no breathable filter
 
-    const searchValue: string | undefined = searchStr ?? undefined
+    const searchValue: string | undefined = tempSearchStr ?? searchStr ?? undefined
     
     return <div style={{ 
         display: 'flex', 
@@ -193,7 +194,7 @@ export default function LocationFilters({
                 <div style={{
                     display: 'flex',
                     transition: 'transform 0.3s ease',
-                    transform: descending ? 'rotate(180deg)' : 'rotate(0deg)',
+                    transform: descending ? 'rotate(0deg)' : 'rotate(180deg)',
                     marginLeft: '5px',
                     // marginRight: '5px',
                 }}>
@@ -394,13 +395,26 @@ export default function LocationFilters({
                     transition: 'width 0.4s ease',
                 }}
                 onChange={(s) => {
-                    setSearchStr(s.target.value)
+                    if (s.target.value === '') {
+                        setSearchStr('')
+                        setTempSearchStr(null)
+                    } else {
+                        setTempSearchStr(s.target.value)
+                    }
+                    
                 }} 
                 value={searchValue}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                        // actually search
+                        setSearchStr(searchValue ?? '')
+                    }
+                }}
                 placeholder="Search" 
             />
             {searchStr && <components.CrossIcon onClick={() => {
                 setSearchStr('')
+                setTempSearchStr(null)
             }}
             style={{
                 color: 'darkgrey',

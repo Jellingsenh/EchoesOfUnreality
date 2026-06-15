@@ -7,7 +7,7 @@ export default function NameInput({
     currentInputLocked,
     // setCurrentInputLocked,
     viewMode,
-    createMode,
+    // createMode,
 }:{
     inputLabel: string,
     currentInput: string | null,
@@ -15,7 +15,7 @@ export default function NameInput({
     currentInputLocked: boolean,
     // setCurrentInputLocked: React.Dispatch<React.SetStateAction<boolean>>,
     viewMode: boolean,
-    createMode: boolean,
+    // createMode: boolean,
 }){
     return  <TextField 
         label={inputLabel}
@@ -38,14 +38,15 @@ export default function NameInput({
         multiline
         focused={viewMode || currentInputLocked}
         slotProps={{ htmlInput: { readOnly: viewMode || currentInputLocked } }} 
-        defaultValue={createMode ? null : currentInput}
+        // defaultValue={createMode ? null : currentInput}
+        value={currentInput ?? ''}
         style={{ 
             // margin: '5px',
         }} 
         onChange={(input) => {
-            if (input.target.value !== '' && input.target.value.length < 2) {
-                return
-            }
+            // if (input.target.value !== '' && input.target.value.length < 2) {
+            //     return
+            // }
             // console.log(input.target.value)
             setCurrentInput(input.target.value)
         }}

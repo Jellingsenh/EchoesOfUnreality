@@ -7,15 +7,19 @@ export default function NameInput({
     currentInputLocked,
     setCurrentInputLocked,
     viewMode,
-    createMode,
+    // createMode,
 }:{
     currentInput: string | null,
     setCurrentInput: React.Dispatch<React.SetStateAction<string | null>>,
     currentInputLocked: boolean,
     setCurrentInputLocked: React.Dispatch<React.SetStateAction<boolean>>,
     viewMode: boolean,
-    createMode: boolean,
+    // createMode: boolean,
 }){
+    // function handleSubmit() {
+    //     console.log(' submit')
+    // }
+
     return <>
         {!viewMode && <LockInputButton 
             // lockedVariable="name"
@@ -41,18 +45,26 @@ export default function NameInput({
                 // '&.Mui-focused fieldset': { borderColor: 'blue' },
             // },
             }}
+            // onBlur={handleSubmit} // Triggers when user clicks outside the textfield
+            // onKeyDown={(e) => {
+            //     if (e.key === 'Enter') {
+            //         handleSubmit();
+            //         e.currentTarget.blur(); // Optional: Unfocus the textfield after Enter
+            //     }
+            // }}
             focused={viewMode || currentInputLocked}
             slotProps={{ htmlInput: { readOnly: viewMode || currentInputLocked } }} 
-            defaultValue={createMode ? null : currentInput} 
+            // defaultValue={createMode ? null : currentInput} 
+            value ={currentInput ?? ''}
             style={{ 
             marginTop: '5px',
             // // marginLeft: '5px',
             marginBottom: '5px',
             }} 
             onChange={(input) => {
-                if (input.target.value !== '' && input.target.value.length < 2) {
-                    return
-                }
+                // if (input.target.value !== '' && input.target.value.length < 2) {
+                //     return
+                // }
                 // console.log(input.target.value)
                 setCurrentInput(input.target.value)
             }}

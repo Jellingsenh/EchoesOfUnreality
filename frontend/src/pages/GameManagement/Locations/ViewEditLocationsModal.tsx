@@ -29,6 +29,7 @@ export default function ViewEditLocationsModal({
    newChildType,
    addToExcludedListLocations,
    removeFromExcludedListLocations,
+   setLocationId,
    locationName,
    setLocationName,
    nameLocked,
@@ -126,6 +127,7 @@ export default function ViewEditLocationsModal({
    newChildType: string | null,
    addToExcludedListLocations: (name: string, type: string) => void,
    removeFromExcludedListLocations: (name: string, type: string) => void,
+   setLocationId: React.Dispatch<React.SetStateAction<string | null>>,
    locationName: string | null,
    setLocationName: React.Dispatch<React.SetStateAction<string | null>>,
    nameLocked: boolean,
@@ -212,10 +214,11 @@ export default function ViewEditLocationsModal({
    useEffect(() => { 
       const controller3 = new AbortController(); // stop call from happenig 2x
 
-      if (createMode || !currentLocation) {
-         setLocationName('Name')
+      if (createMode) {
+         setLocationId(null)
+         setLocationName(null)
          setLocationType('PLACE')
-         setLocationAppearance('')
+         setLocationAppearance(null)
          setLocationModifier('NONE')
          setLocationSize('STANDARD')
          setLocationNatureBreathable(null)
@@ -238,7 +241,7 @@ export default function ViewEditLocationsModal({
          setLocationPositionY(0)
          setLocationChildren([])
          setLocationAnomalies([])
-         setLocationSummary('')
+         setLocationSummary(null)
       } else {
          const { signal } = controller3;
 
@@ -253,6 +256,7 @@ export default function ViewEditLocationsModal({
                // console.log('fetching full location with name: ' + currentLocation.name + ' & type: ' + currentLocation.type)
                const result = await res.json();
                // console.log(' got full location: ' + JSON.stringify(result))
+               setLocationId(result._id)
                setLocationName(result.name)
                setLocationType(result.type)
                setLocationAppearance(result.appearance)
@@ -323,7 +327,7 @@ export default function ViewEditLocationsModal({
       // minWidth: '610px', // 610 keeps the locks from overlapping, and looks nice
     }}>
       {/* VIEWING/EDITING/CREATING */}
-      {loadingLocation || (locationName === null) ? 
+      {(loadingLocation) ? 
          <div style={{
             padding: '10px auto'
          }}>
@@ -360,7 +364,7 @@ export default function ViewEditLocationsModal({
                      currentInputLocked={nameLocked}
                      setCurrentInputLocked={setNameLocked}
                      viewMode={viewMode}
-                     createMode={createMode}
+                     // createMode={createMode}
                   />
                   <LocationTypeDropdown currentInput={locationType}
                      setCurrentInput={setLocationType}
@@ -390,7 +394,7 @@ export default function ViewEditLocationsModal({
                   currentInputLocked={appearanceLocked}
                   setCurrentInputLocked={setAppearanceLocked}
                   viewMode={viewMode}
-                  createMode={createMode}
+                  // createMode={createMode}
                />
                {/* NATURE & SOCIETY | PARENT & CHILDREN */}
                <div style={{
@@ -442,7 +446,7 @@ export default function ViewEditLocationsModal({
                         currentInputLocked={societyLocked}
                         setCurrentInputLocked={setSocietyLocked}
                         viewMode={viewMode}
-                        createMode={createMode}
+                        // createMode={createMode}
                      />
                   </div>
                   {/* PARENT & CHILDREN */}
@@ -527,7 +531,7 @@ export default function ViewEditLocationsModal({
                   currentInputLocked={summaryLocked}
                   setCurrentInputLocked={setSummaryLocked}
                   viewMode={viewMode}
-                  createMode={createMode}
+                  // createMode={createMode}
                />
             </div>
          </>}

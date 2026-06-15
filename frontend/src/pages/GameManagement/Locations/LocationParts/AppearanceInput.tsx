@@ -7,14 +7,14 @@ export default function AppearanceInput({
     currentInputLocked,
     setCurrentInputLocked,
     viewMode,
-    createMode,
+    // createMode,
 }:{
     currentInput: string | null,
     setCurrentInput: React.Dispatch<React.SetStateAction<string | null>>,
     currentInputLocked: boolean,
     setCurrentInputLocked: React.Dispatch<React.SetStateAction<boolean>>,
     viewMode: boolean,
-    createMode: boolean,
+    // createMode: boolean,
 }) {
     return <div style={{
         display: 'flex',
@@ -53,15 +53,16 @@ export default function AppearanceInput({
             multiline
             focused={viewMode || currentInputLocked}
             slotProps={{ htmlInput: { readOnly: viewMode || currentInputLocked } }} 
-            defaultValue={createMode ? null : currentInput}
+            // defaultValue={createMode ? null : currentInput}
+            value={currentInput ?? ''}
             style={{ 
                 marginTop: '10px',
                 // marginBottom: '5px',
             }} 
             onChange={(input) => {
-                if (input.target.value !== '' && input.target.value.length < 2) {
-                    return
-                }
+                // if (input.target.value !== '' && input.target.value.length < 2) {
+                //     return
+                // }
                 // console.log(input.target.value)
                 setCurrentInput(input.target.value)
             }}

@@ -18,6 +18,7 @@ import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bson.conversions.Bson;
+import org.bson.types.ObjectId;
 
 import com.jellingsen.games.echoes_of_unreality.API.Filters.LocationFilterOptions;
 import com.jellingsen.games.echoes_of_unreality.Components.Character.NPC;
@@ -219,6 +220,10 @@ public class DatabaseConnection {
         return locationsCollection != null && locationsCollection.find(new Document("name", name).append("type", type)).first() != null;
     }
 
+    private boolean isLocationInCollectionById(ObjectId id) {
+        return locationsCollection != null && locationsCollection.find(new Document("_id", id)).first() != null;
+    }
+
     public Location createNewLocationSave(Location location) { // creating a new location
         if (location == null || location.name == null || location.type == null) {
             System.out.println("> Error: Location name or type is null.");
@@ -261,6 +266,66 @@ public class DatabaseConnection {
         } catch (Exception e) {
             System.out.println("> Error inserting location " + location.name + ": " + e.getMessage());
             return null;
+        }
+    }
+
+    public Location updateLocationSave(Location location) {
+        if (location != null && location._id != null && location._id.length() > 0) {
+            // String id = "ObjectId('" + location._id + "')";
+            ObjectId locationId = new ObjectId(location._id);
+            if (!isLocationInCollectionById(locationId)) {
+                System.out.println("> Can not update location with id " + locationId + ", no location with that id exists.");
+                return null;
+            }
+            try {
+                this.locationsCollection.updateOne(
+                    Filters.eq("_id", locationId),
+                    Updates.combine( // add all fields
+                        Updates.set("name", location.name),
+                        Updates.set("type", location.type),
+                        Updates.set("appearance", location.appearance),
+                        Updates.set("summary", location.summary),
+                        Updates.set("size", location.size),
+                        Updates.set("modifier", location.modifier),
+                        Updates.set("nature", location.nature),
+                        Updates.set("society", location.society),
+                        Updates.set("anomalies", location.anomalies),
+                        Updates.set("parent", location.parent),
+                        Updates.set("position", location.position),
+                        Updates.set("children", location.children),
+                        Updates.set("timestamp", Instant.now().atZone(ZoneId.of("UTC")).getLong(ChronoField.INSTANT_SECONDS)
+                    )));
+                    System.out.println("> Updated location " + location.name);
+                    return location;
+            } catch (Exception e) {
+                System.out.println("> Error updating location " + location.name + ": " + e.getMessage());
+                return null;
+            }
+        } else {
+            System.out.println("> Id missing: Can not update location.");
+            return null;
+        }
+    }
+
+    public boolean deleteLocationSave(String _id, String locationName) {
+        if (_id != null && _id.length() > 0) {
+            // String id = "ObjectId('" + location._id + "')";
+            ObjectId locationId = new ObjectId(_id);
+            if (!isLocationInCollectionById(locationId)) {
+                System.out.println("> Can not delete location with id " + locationId + ", no location with that id exists.");
+                return false;
+            }
+            try {
+                this.locationsCollection.deleteOne(Filters.eq("_id", locationId));
+                System.out.println("> Deleted location " + locationName + ".");
+                return true;
+            } catch (Exception e) {
+                System.out.println("> Error deleting location " + locationName + ": " + e.getMessage());
+                return false;
+            }
+        } else {
+            System.out.println("> Id missing: Can not delete location.");
+            return false;
         }
     }
 
@@ -353,6 +418,14 @@ public class DatabaseConnection {
             }
         }
         return updatedChildren;
+    }
+
+    public void unlinkChildFromDeletedParent(CompressedLocation chLoc) {
+        updateLocationsCompressedParent(chLoc, null);
+    }
+
+    public void unlinkParentFromDeletedChild(CompressedLocation parent, CompressedLocation loc) {
+        updateLocationsCompressedChildren(parent, removeChild(getLocationsChildren(parent), loc));
     }
 
     // public Location getRandomChartedLocation() {

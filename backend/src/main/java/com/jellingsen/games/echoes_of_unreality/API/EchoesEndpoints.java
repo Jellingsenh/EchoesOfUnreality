@@ -79,7 +79,17 @@ public class EchoesEndpoints {
 
     @PostMapping("/addLocation")
     public Location addNewLocation(@RequestBody Location location) { 
-        return unrealityManager.saveLocationToDatabase(location); // josh if exists, update by _id
+        return unrealityManager.saveLocationToDatabase(location); 
+    }
+
+    @PostMapping("/editLocation")
+    public Location editLocation(@RequestBody Location location) { 
+        return unrealityManager.editLocationInDatabase(location); // josh if exists, update by _id
+    }
+
+    @PostMapping("/deleteLocation")
+    public boolean deleteLocation(@RequestBody Location location) { 
+        return unrealityManager.deleteLocationFromDatabase(location);
     }
 
     @GetMapping("/getLocation/{name}/{type}")

@@ -24,7 +24,7 @@ export default function SocietySection({
     currentInputLocked,
     setCurrentInputLocked,
     viewMode,
-    createMode,
+    // createMode,
 }:{
     currentHistoryInput: string | null,
     setCurrentHistoryInput: React.Dispatch<React.SetStateAction<string | null>>,
@@ -47,7 +47,7 @@ export default function SocietySection({
     currentInputLocked: boolean,
     setCurrentInputLocked: React.Dispatch<React.SetStateAction<boolean>>,
     viewMode: boolean,
-    createMode: boolean,
+    // createMode: boolean,
 }) {
     return <div style={{
         display: 'flex',
@@ -99,7 +99,7 @@ export default function SocietySection({
                         setCurrentInput={setCurrentCultureInput}
                         currentInputLocked={currentInputLocked}
                         viewMode={viewMode}
-                        createMode={createMode}
+                        // createMode={createMode}
                     />
                     {/* HISTORY */}
                     <SocietyParts 
@@ -108,7 +108,7 @@ export default function SocietySection({
                         setCurrentInput={setCurrentHistoryInput}
                         currentInputLocked={currentInputLocked}
                         viewMode={viewMode}
-                        createMode={createMode}
+                        // createMode={createMode}
                     />
                     {/* RELIGION */}
                     <SocietyParts 
@@ -117,7 +117,7 @@ export default function SocietySection({
                         setCurrentInput={setCurrentReligionInput}
                         currentInputLocked={currentInputLocked}
                         viewMode={viewMode}
-                        createMode={createMode}
+                        // createMode={createMode}
                     />
                     {/* TECHNOLOGY */}
                     <SocietyParts 
@@ -126,7 +126,7 @@ export default function SocietySection({
                         setCurrentInput={setCurrentTechnologyInput}
                         currentInputLocked={currentInputLocked}
                         viewMode={viewMode}
-                        createMode={createMode}
+                        // createMode={createMode}
                     />
                     {/* GOVERNMENT */}
                     <SocietyParts 
@@ -135,7 +135,7 @@ export default function SocietySection({
                         setCurrentInput={setCurrentGovernmentInput}
                         currentInputLocked={currentInputLocked}
                         viewMode={viewMode}
-                        createMode={createMode}
+                        // createMode={createMode}
                     />
                     {/* ECONOMY */}
                     <SocietyParts 
@@ -144,7 +144,7 @@ export default function SocietySection({
                         setCurrentInput={setCurrentEconomyInput}
                         currentInputLocked={currentInputLocked}
                         viewMode={viewMode}
-                        createMode={createMode}
+                        // createMode={createMode}
                     />
                     {/* SECRETS */}
                     <SocietyParts 
@@ -153,7 +153,7 @@ export default function SocietySection({
                         setCurrentInput={setCurrentSecretsInput}
                         currentInputLocked={currentInputLocked}
                         viewMode={viewMode}
-                        createMode={createMode}
+                        // createMode={createMode}
                     />
                     {/* ALLIES */}
                     <SocietyParts 
@@ -162,7 +162,7 @@ export default function SocietySection({
                         setCurrentInput={setCurrentAlliesInput}
                         currentInputLocked={currentInputLocked}
                         viewMode={viewMode}
-                        createMode={createMode}
+                        // createMode={createMode}
                     />
                     {/* ENEMIES */}
                     <SocietyParts 
@@ -171,7 +171,7 @@ export default function SocietySection({
                         setCurrentInput={setCurrentEnemiesInput}
                         currentInputLocked={currentInputLocked}
                         viewMode={viewMode}
-                        createMode={createMode}
+                        // createMode={createMode}
                     />
                     <div style={{
                         display: 'flex',

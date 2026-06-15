@@ -2,16 +2,18 @@ export default function EditSaveButton({
     viewMode,
     createMode,
     locationName,
-    currentLocationName,
+    // currentLocationName,
     setEditMode,
     saveLocationToDB,
+    editLocationInDB,
 }:{
     viewMode: boolean,
     createMode: boolean,
     locationName: string | null,
-    currentLocationName: string | null,
+    // currentLocationName: string | null,
     setEditMode: (mode: 'VIEW' | 'EDIT' | 'CREATE') => void,
     saveLocationToDB: () => void,
+    editLocationInDB: () => void,
 }) {
     
     return <button style={{
@@ -26,15 +28,14 @@ export default function EditSaveButton({
         if (viewMode) {
             setEditMode('EDIT')
         } else {
-            saveLocationToDB()
-            setEditMode('VIEW')
+            if (createMode) {
+                saveLocationToDB()
+            } else {
+                editLocationInDB()
+            }
         }
     }}>
-        {viewMode ? 
-            'Edit' : 
-            'Save'}
-        {createMode ? 
-            ' Location' : 
-            ' ' + locationName || currentLocationName}
+        {(viewMode ? 'Edit ' :'Save ') + 
+        ((!locationName || locationName.length === 0) ? 'location' : locationName)}
     </button>
 }

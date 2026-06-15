@@ -1,12 +1,12 @@
-export default function ViewInMapButton({
+export default function DeleteLocationButton({
     currentLocationName,
-    viewMode,
+    deleteLocationFromDB,
 }:{
     currentLocationName: string | null,
-    viewMode: boolean,
+    deleteLocationFromDB: () => void,
 }) {
     return <>
-        {viewMode &&<button style={{
+        <button style={{
             // border:'1px solid grey',
             // maxHeight: '20px',
             // maxWidth: '200px',
@@ -14,8 +14,9 @@ export default function ViewInMapButton({
             // fontSize: '8px',
             // marginRight: '10px',
             minWidth: 'max-content',
-        }}>
-            View {currentLocationName} in map (tbd)
-        </button>}
+        }}
+        onClick={deleteLocationFromDB}>
+            Delete {currentLocationName}
+        </button>
     </>
 }

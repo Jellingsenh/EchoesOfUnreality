@@ -62,8 +62,8 @@ export default function InfiniteLocationList({
                 padding: '5px 0px',
             }} 
             key={index} 
-            onClick={(e) => {
-                e.stopPropagation() // this stops the clickOut event
+            onClick={() => {
+                // e.stopPropagation() // this stops the clickOut event
                 selectLocation(location)
                 // if (parentSelectMode) {
                 //   setParentFilter({name: location.name, type: location.type})
