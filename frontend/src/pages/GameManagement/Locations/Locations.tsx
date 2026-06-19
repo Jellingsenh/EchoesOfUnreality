@@ -1,20 +1,18 @@
-import { StrictMode, useEffect, useState } from "react"
-import { baseApiUrl, baseWebUrl } from "../../../../resources/constants"
-import ViewEditLocationsModal from "./ViewEditLocationsModal"
+import { StrictMode, useState } from "react"
+import { baseWebUrl } from "../../../../resources/constants"
 import { Root } from "../../../Echoes"
 import WebPage from "../../../components/WebPage"
 import SpinningLoader from "../../../components/SpinningLoader"
 import { useInView } from "react-intersection-observer"
-import ChooseParentOrChildModal from "./LocationParts/ChooseParentOrChildModal"
+import LocationFilters from "./LocationsFilterParts/LocationFilters"
+import InfiniteLocationList from "./LocationsList/InfiniteLocationList"
+import CreateLocationButton from "./LocationButtons/CreateLocationButton"
 import { getTextWidth } from "../../../components/helpers/TextHelpers"
-import LocationFilters from "./LocationParts/LocationFilters"
-import InfiniteLocationList from "./LocationParts/InfiniteLocationList"
-import ViewInMapButton from "./LocationParts/ViewInMapButton"
-import LockUnlockAllButton from "./LocationParts/LockUnlockAllButton"
-import RandomizeUnlockedButton from "./LocationParts/RandomizeUnlockedButton"
-import SetCurrentButton from "./LocationParts/SetCurrentButton"
-import EditSaveButton from "./LocationParts/EditSaveButton"
-import DeleteLocationButton from "./LocationParts/DeleteLocationButton"
+import LocationModal1 from "./LocationModals/LocationModal1"
+import LocationModal2 from "./LocationModals/LocationModal2"
+import doMobileFormatCheck from "../../../components/helpers/doMobileFormatCheck"
+import getInitialLocationsFromAPI from "./LocationsNetworking/getInitialLocationsFromAPI"
+import getMoreLocationsFromAPI from "./LocationsNetworking/getMoreLocationsFromAPI"
 
 Root.render(
   <StrictMode>
@@ -24,566 +22,105 @@ Root.render(
 
 function Locations() {
   const [allCompressedLocations, setAllCompressedLocations] = useState<{name:string,type:string}[]>([])
+  const [noLocationsExist, setNoLocationsExist] = useState<boolean | null>(null);
   const [currentCompressedLocation, setCurrentCompressedLocation] = useState<{name:string, type:string} | null>(null)
-
-  // location list
+  const [loadingLocations, setLoadingLocations] = useState<boolean | null>(null) // loading state
+  const [offset, setOffset] = useState(0) // pagination offset
+  const {ref: loadMoreRef, inView: loadMoreInView} = useInView({});
+  const [endOflist, setEndOfList] = useState(false)
   const [infiniteItemWidth, setInfiniteItemWidth] = useState(0)
+
+  // filter variables
+  const [searchStr, setSearchStr] = useState<string | null>('')
+  const [typeFilter, setTypeFilter] = useState<string | null>(null) // PLACE, CITY, AREA, COUNTRY, CONTINENT, FEATURE, MOON, PLANET, STAR, SPACE, GALAXY, UNIVERSE, or DIMENSION
+  const [breathableFilter, setBreathableFilter] = useState<string | null>(null) // BREATHABLE or UNBREATHABLE
+  const [sortBy, setSortBy] = useState('TIME') // NAME, TYPE, or TIME
+  const [descending, setDescending] = useState(true)
   const [doRefresh, setDoRefresh] = useState(false)
+  const [refreshOnCloseModal, setRefreshOnCloseModal] = useState(false) 
+  const noFilters = (
+      ('' === searchStr)
+      && (typeFilter === null)      
+      && (breathableFilter === null)
+      && (sortBy === 'TIME')
+      && descending)
 
-  // modal
-  const [editMode, setEditMode] = useState('VIEW') // 'VIEW' or 'EDIT' or 'CREATE'
+  // MODAL 1 ARGUMENTS
+  const [editMode, setEditMode] = useState<'VIEW' | 'EDIT' | 'CREATE'>('VIEW') 
   const [isModalHidden, setModalHidden] = useState(true)
+  const [nameLocked, setNameLocked] = useState(false)
+  const [typeLocked, setTypeLocked] = useState(false)
+  const [positionLocked, setPositionLocked] = useState(false)
+  const [locationType, setLocationType] = useState<string | null>(null)
+  const [locationParentName, setLocationParentName] = useState<string | null>(null)
+  const [locationParentType, setLocationParentType] = useState<string | null>(null)
+  const [locationParentCharted, setLocationParentCharted] = useState<boolean | null>(null)
+  const [locationChildren, setLocationChildren] = useState<{name: string, type: string, charted: boolean}[] | null>(null)
 
-  // secondary modal
-   const [chooseLocationModalHidden, setChooseLocationModalHidden] = useState(true)
-   const [secondaryModalParentMode, setSecondaryModalParentMode] = useState<boolean | null>(null) // parentMode
-
+  // MODAL 2 ARGUMENTS
+  const [chooseLocationModalHidden, setChooseLocationModalHidden] = useState(true)
+  const [secondaryModalParentMode, setSecondaryModalParentMode] = useState<boolean | null>(null) // parentMode
   const [newParentName, setNewParentName] = useState<string | null>(null) // can be for a chosen parent or child
   const [newParentType, setNewParentType] = useState<string | null>(null) // can be for a chosen parent or child
   const [newChildName, setNewChildName] = useState<string | null>(null) // can be for a chosen parent or child
   const [newChildType, setNewChildType] = useState<string | null>(null) // can be for a chosen parent or child
+  const [excludedListLocations, setExcludedListLocations] = useState<{name:string, type:string}[]>([])
 
-  const [excludedListLocations, setExcludedListLocations] = useState<{name:string, type:string}[]>([]) // for when choosing a parent or child, to exclude the current location and its children/parents
-  
-  // filter variables
-  const [searchStr, setSearchStr] = useState<string | null>('')
-
-  const [typeFilter, setTypeFilter] = useState<string | null>(null) // PLACE, CITY, AREA, COUNTRY, CONTINENT, FEATURE, MOON, PLANET, STAR, SPACE, GALAXY, UNIVERSE, or DIMENSION
-  const [breathableFilter, setBreathableFilter] = useState<string | null>(null) // BREATHABLE or UNBREATHABLE
-  // const [parentFilter, setParentFilter] = useState<{name:string, type:string} | null>(null) // {name: '', type: ''}
-  // const [parentSelectMode, setParentSelectMode] = useState(false)
-
-  const [sortBy, setSortBy] = useState('TIME') // NAME, TYPE, or TIME
-  const [descending, setDescending] = useState(true)
-
-  // data variables
-  const [loading, setLoading] = useState(false) // loading state
-
-  const [offset, setOffset] = useState(0) // pagination offset
-  const [loadingMore, setLoadingMore] = useState(false) // loading state
-  const [endOflist, setEndOfList] = useState(false)
-
-  // MODAL ARGUMENTS // moved here for the sake of the modal footer
-
-  // locked variables
-  const [nameLocked, setNameLocked] = useState(false)
-  const [typeLocked, setTypeLocked] = useState(false)
-  const [sizeLocked, setSizeLocked] = useState(false)
-  const [modifierLocked, setModifierLocked] = useState(false)
-  const [appearanceLocked, setAppearanceLocked] = useState(false)
-  const [natureLocked, setNatureLocked] = useState(false)
-  const [societyLocked, setSocietyLocked] = useState(false)
-  const [parentLocked, setParentLocked] = useState(false)
-  const [positionLocked, setPositionLocked] = useState(false)
-  const [childrenLocked, setChildrenLocked] = useState(false)
-  const [anomaliesLocked, setAnomaliesLocked] = useState(false)
-  const [summaryLocked, setSummaryLocked] = useState(false)
-
-  function allInputsUnlocked() {
-    return !nameLocked 
-        && !typeLocked 
-        && !sizeLocked 
-        && !modifierLocked 
-        && !appearanceLocked 
-        && !natureLocked 
-        && !societyLocked 
-        && !parentLocked 
-        && !positionLocked 
-        && !childrenLocked 
-        && !anomaliesLocked 
-        && !summaryLocked
-  }
-
-  function unlockAllInputs() {
-    setNameLocked(false)
-    setTypeLocked(false)
-    setSizeLocked(false)
-    setModifierLocked(false)
-    setAppearanceLocked(false)
-    setNatureLocked(false)
-    setSocietyLocked(false)
-    setParentLocked(false)
-    setPositionLocked(false)
-    setChildrenLocked(false)
-    setAnomaliesLocked(false)
-    setSummaryLocked(false)
-  }
-
-  function lockAllInputs() {
-    setNameLocked(true)
-    setTypeLocked(true)
-    setSizeLocked(true)
-    setModifierLocked(true)
-    setAppearanceLocked(true)
-    setNatureLocked(true)
-    setSocietyLocked(true)
-    setParentLocked(true)
-    setPositionLocked(true)
-    setChildrenLocked(true)
-    setAnomaliesLocked(true)
-    setSummaryLocked(true)
-  }
-
-  // main location variables
-  const[locationId, setLocationId] = useState<string | null>(null)
-  const [locationName, setLocationName] = useState<string | null>(null)
-  const [locationType, setLocationType] = useState<string | null>(null)
-  const [locationAppearance, setLocationAppearance] = useState<string | null>(null)
-  const [locationModifier, setLocationModifier] = useState<string | null>(null)
-  const [locationSize, setLocationSize] = useState<string | null>(null)
-  //nature
-  const [locationNatureBreathable, setLocationNatureBreathable] = useState<boolean | null>(null)
-  const [locationNatureGravity, setLocationNatureGravity] = useState<string | null>(null)
-  const [locationNatureEnvironments, setLocationNatureEnvironments] = useState<string[] | null>(null)
-  const [locationNatureMaterials, setLocationNatureMaterials] = useState<string[] | null>(null)
-  //society
-  const [locationSocietyHistory, setLocationSocietyHistory] = useState<string | null>(null)
-  const [locationSocietyReligion, setLocationSocietyReligion] = useState<string | null>(null)
-  const [locationSocietyTechnology, setLocationSocietyTechnology] = useState<string | null>(null)
-  const [locationSocietyCulture, setLocationSocietyCulture] = useState<string | null>(null)
-  const [locationSocietyGovernment, setLocationSocietyGovernment] = useState<string | null>(null)
-  const [locationSocietyEconomy, setLocationSocietyEconomy] = useState<string | null>(null)
-  const [locationSocietySecrets, setLocationSocietySecrets] = useState<string | null>(null)
-  const [locationSocietyAllies, setLocationSocietyAllies] = useState<string | null>(null)
-  const [locationSocietyEnemies, setLocationSocietyEnemies] = useState<string | null>(null)
-  // parent
-  const [locationParentName, setLocationParentName] = useState<string | null>(null)
-  const [locationParentType, setLocationParentType] = useState<string | null>(null)
-  const [locationParentCharted, setLocationParentCharted] = useState<boolean | null>(null)
-  // position
-  const [locationPositionX, setLocationPositionX] = useState<number | null>(null)
-  const [locationPositionY, setLocationPositionY] = useState<number | null>(null)
-  // children
-  const [locationChildren, setLocationChildren] = useState<{name: string, type: string, charted: boolean}[] | null>(null)
-  const [locationAnomalies, setLocationAnomalies] = useState<string[] | null>([])
-  const [locationSummary, setLocationSummary] = useState<string | null>(null)
-
-  // Debouncer timer (unused)
-  // Create a ref to track the timeout
-  // const debounceTimer = useRef(null);
-
-  // // Cleanup the timer when the component unmounts
-  // useEffect(() => {
-  //   return () => {
-  //     if (debounceTimer.current) {
-  //       clearTimeout(debounceTimer.current);
-  //     }
-  //   };
-  // }, []);
-
-  // MOBILE CHECK
-
+  // MOBILE FORMAT CHECK
   const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    // Define the media query string
-    const mediaQuery = window.matchMedia('(max-width: 360px)');
-
-    // Handler function to update state
-    const handleMediaQueryChange = (event: any) => {
-      // console.log('Media query change detected. Is mobile:', event.matches);
-      setIsMobile(event.matches);
-    };
-
-    // Set initial value immediately on mount
-    setIsMobile(mediaQuery.matches);
-
-    // Listen for changes across the breakpoint
-    mediaQuery.addEventListener("change", handleMediaQueryChange);
-
-    // Clean up event listener on component unmount
-    return () => {
-      mediaQuery.removeEventListener("change", handleMediaQueryChange);
-    };
-  }, []);
-
-  // useEffect(() => {
-  //   console.log('isMobile (might adjust range):', isMobile)
-  // }, [isMobile])
+  doMobileFormatCheck(setIsMobile)
 
   // API CALLS
 
   // GET INITIAL LOCATIONS
-  useEffect(() => {
-    if (searchStr && searchStr.length == 1) return
-    // console.log('filters:\n  ' 
-    //   + searchStr + '\n  '
-    //   + typeFilter + '\n  '
-    //   + breathableFilter + '\n  '
-    //   + sortBy + '\n  '
-    //   + descending + '\n  '
-    //   + doRefresh + '.')
-
-    const controller = new AbortController(); // stop call from happenig 2x
-    const { signal } = controller;
-
-    async function getCompressedLocations()  {
-      setLoading(true); // Start loading state
-      try {
-        const res = await fetch(baseApiUrl + '/getCompressedLocations/0/20', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            "name": searchStr,
-            "type": typeFilter, 
-            "breathable": breathableFilter,
-            // "parent": parentFilter,
-            "sortBy": sortBy,
-            "descending": descending.toString()
-          }),
-          signal, // Attach the signal to the fetch request
-        },);
-        console.log('Getting locations...')
-        const result = await res.json();
-        // console.log(' got compressed locations: ' + JSON.stringify(result))
-        setMaxInfiniteItemWidth(result ?? [])
-        setAllCompressedLocations(result ?? []);
-        if (result.length < 20) {
-          setEndOfList(true)
-        }
-      } catch (error: any) {
-        if (error.name === 'AbortError') {
-          // console.log('Request was canceled intentionally.');
-          return; // Gracefully exit
-        }
-        console.error('Error posting data:', error);
-      } finally {
-        setLoading(false); // End loading state regardless of success or failure
-        // clearTimeout(timeoutId);
-      }
-    }
-
-    // // Clear the previous timer if the button is clicked again
-    // if (debounceTimer.current) {
-    //   clearTimeout(debounceTimer.current);
-    // }
-
-    // // Set a 500ms delay before actually fetching/refreshing
-    // debounceTimer.current = setTimeout(() => {
-    //   // Perform your actual refresh or fetch logic here
-    // }, 500); 
-
-    getCompressedLocations()
-    setOffset(0)
-    setEndOfList(false)
-    
-    return () => {
-      // clearTimeout(timeoutId);
-      controller.abort(); // stop call from happenig 2x
-    };
-  }, [searchStr, typeFilter, breathableFilter, sortBy, descending, doRefresh])
+  getInitialLocationsFromAPI(
+    searchStr,
+    typeFilter,
+    breathableFilter,
+    sortBy,
+    descending,
+    setOffset,
+    doRefresh,
+    setLoadingLocations,
+    setNoLocationsExist,
+    setMaxInfiniteItemWidth,
+    setAllCompressedLocations,
+    setEndOfList,
+    noFilters)
 
   // LOAD MORE LOCATIONS
-  const {ref: loadMoreRef, inView: loadMoreInView} = useInView({});
+  getMoreLocationsFromAPI(
+    offset,
+    setOffset,
+    searchStr,
+    typeFilter,
+    breathableFilter,
+    sortBy,
+    descending,
+    loadMoreInView,
+    loadingLocations,
+    setAllCompressedLocations,
+    setMaxInfiniteItemWidth,
+    setEndOfList)
 
-  useEffect(() => {
-    const controller2 = new AbortController(); // stop call from happenig 2x
-    const { signal } = controller2;
+  // HELPERS
 
-    async function getMoreCompressedLocations()  {
-      setLoadingMore(true)
-      // console.log('getting more locations...')
-      try {
-        const res = await fetch(baseApiUrl + '/getCompressedLocations/' + (offset+20) + '/20', { // '/' + limit
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            "name": searchStr,
-            "type": typeFilter, 
-            "breathable": breathableFilter,
-            // "parent": parentFilter,
-            "sortBy": sortBy,
-            "descending": descending.toString()
-          }),
-          signal, // Attach the signal to the fetch request
-        });
-        console.log('Getting more locations...')
-        const result = await res.json();
-        setAllCompressedLocations(prevItems => {
-          const newItems = [...prevItems, ...result]
-          // console.log('items added: ',newItems.length-prevItems.length)
-          if (newItems.length-prevItems.length < 20) { // getting 20 at a time. If < 20, list is over
-            // console.log('end of list')
-            setEndOfList(true)
-          }
-          setMaxInfiniteItemWidth(newItems ?? [])
-          return newItems;
-        });
-        setOffset(offset+20)
-      } catch (error: any) {
-        if (error.name === 'AbortError') {
-          // console.log('Request was canceled intentionally.');
-          return; // Gracefully exit
-        }
-        console.error('Error posting data:', error);
-      } finally {
-        setLoadingMore(false)
-      }
-    }
+  const resetLocationFilters = () => {
+      setSearchStr('')
+      setTypeFilter(null)
+      setBreathableFilter(null)
+      setSortBy('TIME')
+      setDescending(true)
+  }
 
-    // console.log('loadMoreInView:', loadMoreInView)
-    if (loadMoreInView && !loading && !loadingMore) {
-      getMoreCompressedLocations();
-    }
-
-    return () => {
-      controller2.abort(); // stop call from happenig 2x
-    };
-  }, [loadMoreInView])
-  
-  // SAVE & EDIT LOCATION
   const refreshLocations = () => {
     // console.log('new location added, list ended loading')
-    console.log('refreshing...')
-    if (('' !== searchStr)
-      || typeFilter      
-      || breathableFilter
-      || (sortBy !== 'TIME')
-      || !descending) {
+    console.log('Refreshing locations...')
+    if (!noFilters) {
       resetLocationFilters()
     }
     setDoRefresh(prev => !prev)
   }
-
-  const jsonBody = {
-    "_id": locationId,
-    "name": locationName,
-    "type": locationType,
-    "size": locationSize,
-    "modifier": 'NONE' === locationModifier ? null : locationModifier,
-    "appearance": locationAppearance,
-    "nature": {
-      "breathable": locationNatureBreathable,
-      "gravity": locationNatureGravity,
-      "environments": locationNatureEnvironments,
-      "materials": locationNatureMaterials,
-    },
-    "society": {
-      "history": locationSocietyHistory,
-      "religion": locationSocietyReligion,
-      "technology": locationSocietyTechnology,
-      "culture": locationSocietyCulture,
-      "government": locationSocietyGovernment,
-      "economy": locationSocietyEconomy,
-      "secrets": locationSocietySecrets,
-      "allies": locationSocietyAllies,
-      "enemies": locationSocietyEnemies,
-    },
-    "parent": locationParentName && locationParentType ? {
-      "name": locationParentName,
-      "type": locationParentType
-    } : null,
-    "position": (locationPositionX != null && locationPositionY != null) ? [ 
-      locationPositionX,locationPositionY
-    ] : null,
-    "children": locationChildren,
-    "anomalies": locationAnomalies,
-    "summary": locationSummary,
-  }
-
-  function saveCurrentLocationToDB() {
-    const controller7 = new AbortController(); // stop call from happenig 2x
-    const { signal } = controller7;
-
-    async function saveLocation() {
-        try {
-            const res = await fetch(baseApiUrl + '/addLocation', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(jsonBody),
-            signal, // Attach the signal to the fetch request
-            },);
-            const result = await res.json();
-            if (result._id) {
-              console.log('Location saved successfully.')
-              setLocationId(result._id) 
-              setEditMode('VIEW') 
-              refreshLocations()
-            } else {
-              // josh add banner for error?
-              console.error('Res error posting data:', res.statusText);
-            } 
-        } catch (error: any) {
-            if (error.name === 'AbortError') {
-              // console.log('Request was canceled intentionally.');
-              return; // Gracefully exit
-            }
-            // setEditMode('CREATE') 
-            console.error('Error posting data:', error);
-        } finally {
-            // clearTimeout(timeoutId);
-        }
-    }
-    saveLocation()
-  }
-
-  function editLocationInDB() {
-    if (!jsonBody._id) {
-      console.error('No location id found for editing. Cannot edit location.')
-      return
-    }
-
-    const controller8 = new AbortController(); // stop call from happenig 2x
-    const { signal } = controller8;
-
-    async function editLocation() {
-        try {
-            const res = await fetch(baseApiUrl + '/editLocation', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(jsonBody),
-            signal, // Attach the signal to the fetch request
-            },);
-            const result = await res.json();
-            if (result._id) {
-              console.log('Location edited successfully.')
-                setEditMode('VIEW') 
-                refreshLocations()
-            } else {
-              // josh add banner for error?
-              console.error('Res error editing data:', res.statusText);
-            } 
-        } catch (error: any) {
-            if (error.name === 'AbortError') {
-            // console.log('Request was canceled intentionally.');
-            return; // Gracefully exit
-            }
-            // setEditMode('EDIT') 
-            console.error('Error editing data:', error);
-        } finally {
-            // clearTimeout(timeoutId);
-        }
-    }
-    editLocation()
-  }
-
-  function deleteLocationFromDB() {
-    if (!jsonBody._id) {
-      console.error('No location id found for editing. Cannot delete.')
-      return
-    }
-
-    if (!confirm('Are you sure you want to delete ' + jsonBody.name + '?')) {
-      return
-    }
-
-    const controller9 = new AbortController(); // stop call from happenig 2x
-    const { signal } = controller9;
-
-    async function deleteLocation() {
-        try {
-            const res = await fetch(baseApiUrl + '/deleteLocation', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(jsonBody),
-            signal, // Attach the signal to the fetch request
-            },);
-            const result = await res.json();
-            if (result) {
-                console.log('Location deleted successfully.')
-                // setEditMode('VIEW') 
-                refreshLocations()
-                setModalHidden(true)
-            } else {
-              // josh add banner for error?
-              console.error('Res error deleting data:', res.statusText);
-            } 
-        } catch (error: any) {
-            if (error.name === 'AbortError') {
-            // console.log('Request was canceled intentionally.');
-            return; // Gracefully exit
-            }
-            // setEditMode('EDIT') 
-            console.error('Error posting data:', error);
-        } finally {
-            // clearTimeout(timeoutId);
-        }
-    }
-    deleteLocation()
-  }
-
-  // RANDOMIZE UNLOCKED FIELDS
-  const lockedListStr:string = (nameLocked ? 'name,' : ''
-    + typeLocked ? 'type,' : ''
-    + sizeLocked ? 'size,' : ''
-    + modifierLocked ? 'modifier,' : ''
-    + appearanceLocked ? 'appearance,' : ''
-    + natureLocked ? 'nature,' : ''
-    + societyLocked ? 'society,' : ''
-    + parentLocked ? 'parent,' : ''
-    + positionLocked ? 'position,' : ''
-    + childrenLocked ? 'children,' : ''
-    + anomaliesLocked ? 'anomalies,' : ''
-    + summaryLocked ? 'summary,' : '').slice(0, -1) // remove last comma;
-
-  function randomizeUnlockedFields() {
-    const controller8 = new AbortController(); // stop call from happenig 2x
-    const { signal } = controller8;
-
-    async function partiallyRandomizeLocation() {
-        try {
-            const res = await fetch(baseApiUrl + '/randomizeLocation/' + lockedListStr, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(jsonBody),
-            signal, // Attach the signal to the fetch request
-            },);
-            // console.log('Randomizing location ' + locationName + '...')
-            const result = await res.json();
-            // if (res.ok) console.log('Randomized ' + locationName + '.')
-            // update fields with result
-            setLocationName(result.name)
-            setLocationType(result.type)
-            setLocationSize(result.size)
-            setLocationModifier(result.modifier ?? 'NONE')
-            setLocationAppearance(result.appearance)
-            setLocationNatureBreathable(result.nature?.breathable ?? null)
-            setLocationNatureGravity(result.nature?.gravity ?? null)
-            setLocationNatureEnvironments(result.nature?.environments ?? null)
-            setLocationNatureMaterials(result.nature?.materials ?? null)
-            setLocationSocietyHistory(result.society?.history ?? null)
-            setLocationSocietyReligion(result.society?.religion ?? null)
-            setLocationSocietyTechnology(result.society?.technology ?? null)
-            setLocationSocietyCulture(result.society?.culture ?? null)
-            setLocationSocietyGovernment(result.society?.government ?? null)
-            setLocationSocietyEconomy(result.society?.economy ?? null)
-            setLocationSocietySecrets(result.society?.secrets ?? null)
-            setLocationSocietyAllies(result.society?.allies ?? null)
-            setLocationSocietyEnemies(result.society?.enemies ?? null)
-            setLocationParentName(result.parent?.name ?? null)
-            setLocationParentType(result.parent?.type ?? null)
-            setLocationParentCharted(result.parent?.charted ?? null)
-            setLocationPositionX(result.position ? result.position[0] : null)
-            setLocationPositionY(result.position ? result.position[1] : null)
-            setLocationChildren(result.children ?? null)
-            setLocationAnomalies(result.anomalies ?? null)
-            setLocationSummary(result.summary ?? null)
-        } catch (error: any) {
-            if (error.name === 'AbortError') {
-            // console.log('Request was canceled intentionally.');
-            return; // Gracefully exit
-            }
-            console.error('Error posting data:', error);
-        } finally {
-            // clearTimeout(timeoutId);
-        }
-    }
-    partiallyRandomizeLocation()
-  }
-
-  // HELPERS
 
   function setMaxInfiniteItemWidth(itemList: {name: string, type: string}[]) {
     var maxLength = 0;
@@ -598,348 +135,147 @@ function Locations() {
     }
   }
 
-  // CONTENT
-
-  const BackToGM = (<a href={baseWebUrl + "/routes/gamemanagement"}>{'< Game Management'}</a>);
-
-  const LocationsTitle = (<div 
-    style={{ 
-      display: 'flex', 
-      flexDirection: 'row', 
-      gap: '10px', 
-      alignItems: 'center',
-      marginRight: '-10px',
-      marginLeft: isModalHidden ? '0px' : '-25px',
-    }}>
-      <h2>Locations</h2>
-      {isModalHidden &&
-        <button className="fadeInItem"
-          style={{
-            aspectRatio: '1 / cos(30deg)',
-            background: '#3498db',
-            clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
-            marginBottom: '-3px',
-            border: 'none',
-            width: '15px',
-            height: '15px',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-          onClick={() => {
-            // e.stopPropagation() // this stops the clickOut event
-            setEditMode('CREATE')
-            setModalHidden(false)
-          }}>
-          +
-        </button>}
-    </div>
-  );
-
-  const ModalTitle = (<div style={{
-    minWidth: '200px',
-  }}>
-      {editMode === 'CREATE' || currentCompressedLocation === null ? 
-        'Creating a new location' :  
-      (editMode === 'VIEW' ? 
-        'Viewing ' : 
-        'Editing ') + 
-        (locationName ?? 'location')}
-  </div>);
-
-  function addToExcludedList(name: string, type: string) {
-      // console.log('adding to excluded list: ' + name + ', ' + type)
-      setExcludedListLocations(prev => [...prev, {name, type}])
-   }
-
-   function removeFromExcludedList(name: string, type: string) {
-      // console.log('removing from excluded list: ' + name + ', ' + type)
-      setExcludedListLocations(prev => prev.filter(location => location.name !== name || location.type !== type))
-   }
-
-   const resetLocationFilters = () => {
-      // console.log('resetLocationFilters...')
-      setSearchStr('')
-      setTypeFilter(null)
-      setBreathableFilter(null)
-      setSortBy('TIME')
-      setDescending(true)
-   }
-
-  const LocationModal = (<ViewEditLocationsModal 
-        isMobile={isMobile}
-        currentLocation={currentCompressedLocation} 
-        viewMode={editMode === 'VIEW'}
-        createMode={editMode === 'CREATE'}
-        selectNewLocationForViewing={selectNewLocationForViewing}
-        // editMode={editMode} 
-        // setEditMode={setEditMode} 
-        setChooseLocationModalHidden={setChooseLocationModalHidden}
-        setSecondaryModalParentMode={setSecondaryModalParentMode}
-        newParentName={newParentName}
-        newParentType={newParentType}
-        newChildName={newChildName}
-        newChildType={newChildType}
-        addToExcludedListLocations={addToExcludedList}
-        removeFromExcludedListLocations={removeFromExcludedList}
-        setLocationId={setLocationId}
-        locationName={locationName}
-        setLocationName={setLocationName}
-        nameLocked={nameLocked}
-        setNameLocked={setNameLocked}
-        locationType={locationType}
-        setLocationType={setLocationType}
-        typeLocked={typeLocked}
-        setTypeLocked={setTypeLocked}
-        locationSize={locationSize}
-        setLocationSize={setLocationSize}
-        sizeLocked={sizeLocked}
-        setSizeLocked={setSizeLocked}
-        locationModifier={locationModifier}
-        setLocationModifier={setLocationModifier}
-        modifierLocked={modifierLocked}
-        setModifierLocked={setModifierLocked}
-        locationAppearance={locationAppearance}
-        setLocationAppearance={setLocationAppearance}
-        appearanceLocked={appearanceLocked}
-        setAppearanceLocked={setAppearanceLocked}
-        locationNatureBreathable={locationNatureBreathable}
-        setLocationNatureBreathable={setLocationNatureBreathable}
-        locationNatureGravity={locationNatureGravity}
-        setLocationNatureGravity={setLocationNatureGravity}
-        locationNatureEnvironments={locationNatureEnvironments}
-        setLocationNatureEnvironments={setLocationNatureEnvironments}
-        locationNatureMaterials={locationNatureMaterials}
-        setLocationNatureMaterials={setLocationNatureMaterials}
-        natureLocked={natureLocked}
-        setNatureLocked={setNatureLocked}
-        locationSocietyHistory={locationSocietyHistory}
-        setLocationSocietyHistory={setLocationSocietyHistory}
-        locationSocietyReligion={locationSocietyReligion}
-        setLocationSocietyReligion={setLocationSocietyReligion}
-        locationSocietyTechnology={locationSocietyTechnology}
-        setLocationSocietyTechnology={setLocationSocietyTechnology}
-        locationSocietyCulture={locationSocietyCulture}
-        setLocationSocietyCulture={setLocationSocietyCulture}
-        locationSocietyGovernment={locationSocietyGovernment}
-        setLocationSocietyGovernment={setLocationSocietyGovernment}
-        locationSocietyEconomy={locationSocietyEconomy}
-        setLocationSocietyEconomy={setLocationSocietyEconomy}
-        locationSocietySecrets={locationSocietySecrets}
-        setLocationSocietySecrets={setLocationSocietySecrets}
-        locationSocietyAllies={locationSocietyAllies}
-        setLocationSocietyAllies={setLocationSocietyAllies}
-        locationSocietyEnemies={locationSocietyEnemies}
-        setLocationSocietyEnemies={setLocationSocietyEnemies}
-        societyLocked={societyLocked}
-        setSocietyLocked={setSocietyLocked}
-        locationParentName={locationParentName}
-        setLocationParentName={setLocationParentName}
-        locationParentType={locationParentType}
-        setLocationParentType={setLocationParentType}
-        locationParentCharted={locationParentCharted}
-        setLocationParentCharted={setLocationParentCharted}
-        parentLocked={parentLocked}
-        setParentLocked={setParentLocked}
-        locationPositionX={locationPositionX}
-        setLocationPositionX={setLocationPositionX}
-        locationPositionY={locationPositionY}
-        setLocationPositionY={setLocationPositionY}
-        positionLocked={positionLocked}
-        setPositionLocked={setPositionLocked}
-        locationChildren={locationChildren}
-        setLocationChildren={setLocationChildren}
-        childrenLocked={childrenLocked}
-        setChildrenLocked={setChildrenLocked}
-        locationAnomalies={locationAnomalies}
-        setLocationAnomalies={setLocationAnomalies}
-        anomaliesLocked={anomaliesLocked}
-        setAnomaliesLocked={setAnomaliesLocked}
-        locationSummary={locationSummary}
-        setLocationSummary={setLocationSummary}
-        summaryLocked={summaryLocked}
-        setSummaryLocked={setSummaryLocked}
-        resetLocationFilters={resetLocationFilters}
-        endOfList={endOflist}
-        refreshLocations={refreshLocations}
-      />
-   );
-
-   const ModalFooter = (<div className='no-scrollbar' style={{
-    // marginTop: 'auto',
-    // border:'1px solid grey',
-    // position: 'fixed',
-    display: 'flex',
-    flexDirection: 'row',
-    gap: '10px',
-    // marginRight: 'auto',
-    // justifyContent: 'center',
-    width: '100%',
-    marginLeft: '5px',
-    marginRight: '5px',
-    marginBottom: '3px',
-    marginTop: '3px',
-    // maxHeight: '20px',
-    // alignItems: 'center',
-    // transform: `scale(${1 / window.devicePixelRatio})`,
-    // minWidth: '100%',
-    overflowX: 'auto',
-  }}>
-    {/* VIEW IN MAP */}
-    {editMode === 'EDIT' ? 
-    <DeleteLocationButton 
-      currentLocationName={locationName ?? 'location'} 
-      deleteLocationFromDB={deleteLocationFromDB}
-    /> :
-    <ViewInMapButton 
-      currentLocationName={locationName ?? 'location'} 
-      viewMode={editMode === 'VIEW'}
-    />}
-    <div style={{
-      // border:'1px solid green', // spacer div
-      display: 'flex',
-      width: '100%',
-      marginLeft: '-5px',
-      marginRight: '-5px',
-    }}/>
-      {/* LOCK/UNLOCK ALL */}
-      <LockUnlockAllButton 
-        allInputsUnlocked={allInputsUnlocked}
-        unlockAllInputs={unlockAllInputs}
-        lockAllInputs={lockAllInputs}
-        viewMode={editMode === 'VIEW'}
-      />
-      {/* RANDOMIZE UNLOCKED */}
-      <RandomizeUnlockedButton 
-        viewMode={editMode === 'VIEW'}
-        randomizeUnlockedFields={randomizeUnlockedFields}
-      />
-      {/* SET CURRENT */}
-      <SetCurrentButton 
-        currentLocationName={locationName ?? 'location'}
-        viewMode={editMode === 'VIEW'}
-      />
-      {/* EDIT/SAVE */}
-      <EditSaveButton 
-        viewMode={editMode === 'VIEW'}
-        createMode={editMode === 'CREATE'}
-        locationName={locationName}
-        // currentLocationName={locationName ?? 'location'}
-        setEditMode={setEditMode}
-        saveLocationToDB={saveCurrentLocationToDB}
-        editLocationInDB={editLocationInDB}
-      />
-  </div>);
-
-  const modalOnClose = () => {
-    setModalHidden(true)
-    setNewParentName(null)
-    setNewParentType(null)
-    setNewChildName(null)
-    setNewChildType(null)
-    unlockAllInputs()
-    setExcludedListLocations([])
-    // resetLocationFilters() // only refresh on 2nd modal close
-  }
-
-  function chooseLocationForRelative(location: {name: string, type: string}) {
-    if (secondaryModalParentMode) {
-      setNewParentName(location.name)
-      setNewParentType(location.type)
-    } else {
-      setNewChildName(location.name)
-      setNewChildType(location.type)
-    }
-    setChooseLocationModalHidden(true)
-  }
-
-  const ChooseLocationModalContent = (<>
-    {/* SORT & FILTER & SEARCH */}
-    <div style={{
-      // marginTop: '-10px',
-      // display: 'flex',
-      position: 'fixed',
-      // alignSelf: 'center',
-      justifySelf: 'center',
-      // justifyContent: 'center',
-      // marginLeft: '25%',
-      marginTop: '-10px',
-      // marginBottom: '5px',
-      // margin: '5px auto',
-      // border: '1px solid black',
-      background: '#ccc9c9',
-      zIndex: 50,
-      padding: '10px 60px',
-    }}>
-      <LocationFilters 
-        searchStr={searchStr}
-        setSearchStr={setSearchStr}
-        typeFilter={typeFilter}
-        setTypeFilter={setTypeFilter}
-        breathableFilter={breathableFilter}
-        setBreathableFilter={setBreathableFilter}
-        sortBy={sortBy}
-        setSortBy={setSortBy}
-        descending={descending}
-        setDescending={setDescending}
-      />
-    </div>
-    {/* LIST LOCATIONS */}
-    <div style={{
-      // border: '1px solid green',
-      marginTop: '30px',
-      // zIndex: 1,
-      // maxHeight: '60%',
-      // overflowY: 'auto',
-    }}>
-      <InfiniteLocationList 
-        allCompressedLocations={allCompressedLocations}
-        selectLocation={chooseLocationForRelative}
-        infiniteItemWidth={infiniteItemWidth}
-        loadMoreRef={loadMoreRef}
-        endOflist={endOflist}
-        excludedLocations={excludedListLocations}
-      />
-    </div>
-  </>);
-
-  const ChooseLocationModal = (<ChooseParentOrChildModal 
-      modalContent={ChooseLocationModalContent}
-      modalParentMode={secondaryModalParentMode ?? false}
-      chooseLocationModalHidden={chooseLocationModalHidden}
-      resetLocationFilters={resetLocationFilters}
-      setChooseLocationModalHidden={setChooseLocationModalHidden}
-  />);
-
   function selectLocationForViewing(location: {name: string, type: string}) {
     // console.log('selected location for viewing: ' + location.name + ', ' + location.type)
     setCurrentCompressedLocation(location)
     setExcludedListLocations([location])
+
     setEditMode('VIEW')
+
+    setNameLocked(true)
+    setTypeLocked(true)
+
+    setRefreshOnCloseModal(false)
     setModalHidden(false)
   }
 
-  function selectNewLocationForViewing(location: {name: string, type: string}) {
-        // console.log('selected new location for viewing: ' + location.name + ', ' + location.type)
-
-    setNewParentName(null)
-    setNewParentType(null)
-    setNewChildName(null)
-    setNewChildType(null)
-
-    setExcludedListLocations([location])
-
-    unlockAllInputs()
-    // resetLocationFilters() // only reset on 2nd modal open and close
-    
-    // setLocationName(null)
-    // setLocationId(null)
-
-    setEditMode('VIEW')
-
-    setCurrentCompressedLocation(location)
+  function chooseLocationForRelative(location: {name: string, type: string}) {
+      if (secondaryModalParentMode) {
+          setNewParentName(location.name)
+          setNewParentType(location.type)
+      } else {
+          setNewChildName(location.name)
+          setNewChildType(location.type)
+      }
+          setChooseLocationModalHidden(true)
   }
 
+  function addToExcludedList(name: string, type: string) {
+      // console.log('adding to excluded list: ' + name + ', ' + type)
+      setExcludedListLocations(prev => [...prev, {name, type}])
+  }
+    
+  function removeFromExcludedList(name: string, type: string) {
+      // console.log('removing from excluded list: ' + name + ', ' + type)
+      setExcludedListLocations(prev => prev.filter(location => location.name !== name || location.type !== type))
+  }
+
+  // WEPPAGE CONTENT
+
+  // BACK BUTTON
+  const BackToGM = (<a href={baseWebUrl + "/routes/gamemanagement"}>{'< Game Management'}</a>);
+
+  // MODAL 1
+  const LocationModalDefinition = <LocationModal1 
+    isMobile={isMobile}
+    isModalHidden={isModalHidden}
+    setModalHidden={setModalHidden}
+    editMode={editMode}
+    setEditMode={setEditMode}
+    currentCompressedLocation={currentCompressedLocation}
+    setCurrentCompressedLocation={setCurrentCompressedLocation}
+    setChooseLocationModalHidden={setChooseLocationModalHidden}
+    setSecondaryModalParentMode={setSecondaryModalParentMode}
+    newParentName={newParentName}
+    setNewParentName={setNewParentName}
+    newParentType={newParentType}
+    setNewParentType={setNewParentType}
+    newChildName={newChildName}
+    setNewChildName={setNewChildName}
+    newChildType={newChildType}
+    setNewChildType={setNewChildType}
+    addToExcludedList={addToExcludedList}
+    removeFromExcludedList={removeFromExcludedList}
+    setExcludedListLocations={setExcludedListLocations}
+    nameLocked={nameLocked}
+    setNameLocked={setNameLocked}
+    locationType={locationType}
+    setLocationType={setLocationType}
+    typeLocked={typeLocked}
+    setTypeLocked={setTypeLocked}
+    locationParentName={locationParentName}
+    setLocationParentName={setLocationParentName}
+    locationParentType={locationParentType}
+    setLocationParentType={setLocationParentType}
+    locationParentCharted={locationParentCharted}
+    setLocationParentCharted={setLocationParentCharted}
+    positionLocked={positionLocked}
+    setPositionLocked={setPositionLocked}
+    locationChildren={locationChildren}
+    setLocationChildren={setLocationChildren}
+    refreshLocations={refreshLocations}
+    resetLocationFilters={resetLocationFilters}
+    refreshOnCloseModal={refreshOnCloseModal}
+    setRefreshOnCloseModal={setRefreshOnCloseModal}
+  />
+
+  // MODAL 2 
+  const ChooseLocationModal = <LocationModal2 
+    chooseLocationModalHidden={chooseLocationModalHidden}
+    setChooseLocationModalHidden={setChooseLocationModalHidden}
+    secondaryModalParentMode={secondaryModalParentMode}
+    locationParentName={locationParentName}
+    setLocationParentName={setLocationParentName}
+    locationParentType={locationParentType}
+    setLocationParentType={setLocationParentType}
+    setLocationParentCharted={setLocationParentCharted}
+    locationType={locationType}
+    addToExcludedList={addToExcludedList}
+    removeFromExcludedList={removeFromExcludedList}
+    excludedListLocations={excludedListLocations}
+    allCompressedLocations={allCompressedLocations}
+    noLocationsExist={noLocationsExist}
+    infiniteItemWidth={infiniteItemWidth}
+    loadMoreRef={loadMoreRef}
+    endOflist={endOflist}
+    resetLocationFilters={resetLocationFilters}
+    setLocationChildren={setLocationChildren}
+    chooseLocationForRelative={chooseLocationForRelative}
+    setPositionLocked={setPositionLocked}
+    searchStr={searchStr}
+    setSearchStr={setSearchStr}
+    typeFilter={typeFilter}
+    setTypeFilter={setTypeFilter}
+    breathableFilter={breathableFilter}
+    setBreathableFilter={setBreathableFilter}
+    sortBy={sortBy}
+    setSortBy={setSortBy}
+    descending={descending}
+    setDescending={setDescending}
+  />
+
+  // LOCATIONS PAGE TITLE
+  const LocationsTitle = (<div 
+    style={{ 
+      display: 'flex', 
+      flexDirection: 'row', 
+      position: 'sticky',
+      gap: '10px', 
+      alignItems: 'center',
+      marginLeft: '10px',
+      marginRight: (isModalHidden && (false === noLocationsExist)) ? '0px' : '25px',
+    }}>
+      <h2>Locations</h2>
+      {false === noLocationsExist && <CreateLocationButton 
+          isModalHidden={isModalHidden}
+          setModalHidden={setModalHidden}
+          setEditMode={setEditMode}
+          setRefreshOnCloseModal={setRefreshOnCloseModal}
+      />}
+    </div>
+  );
+
+  // LOCATIONS PAGE MAIN CONTENT
   const LocationsContent = (<div style={{ 
       display: 'flex',
       flexDirection: 'column',
@@ -976,16 +312,33 @@ function Locations() {
       />
     </div>
     {/* LOADING */}
-    {loading ? <div style={{ margin: '20px auto'}}><SpinningLoader/></div> : 
+    {(true  === loadingLocations) ? 
+    // not null (at startup) or false (after completion), but during loading
+    <div style={{ margin: '10px auto'}}>
+      <SpinningLoader/>
+    </div> : 
+    (false  === loadingLocations) ? 
+    // not null (startup) or true (during loading), only after completion
     // LOADING COMPLETE
     <InfiniteLocationList 
-        allCompressedLocations={allCompressedLocations}
-        selectLocation={selectLocationForViewing}
-        infiniteItemWidth={infiniteItemWidth}
-        loadMoreRef={loadMoreRef}
-        endOflist={endOflist}
-        excludedLocations={null}
-    />}
+      allCompressedLocations={allCompressedLocations}
+      mainMode={true} // set true for main page list
+      noLocationsExist={noLocationsExist}
+      createButton={<CreateLocationButton 
+        isModalHidden={isModalHidden}
+        setModalHidden={setModalHidden}
+        setEditMode={setEditMode}
+        setRefreshOnCloseModal={setRefreshOnCloseModal}
+      />}
+      generateButton={null}
+      selectLocation={selectLocationForViewing}
+      infiniteItemWidth={infiniteItemWidth}
+      loadMoreRef={loadMoreRef}
+      endOflist={endOflist}
+      excludedLocations={null}
+    /> :
+    // loading == null (on startup)
+    <></>}
     {/* GREY BOTTOM BOX */}
     <div style={{ 
         display: 'flex', 
@@ -1024,20 +377,16 @@ function Locations() {
     </div>
   </div>);
 
+  // LOCATIONS PAGE FOOTER
   // const LocationsFooter = (<>
   //   Footer Content
   // </>);
 
   return ( <WebPage 
     backButton={BackToGM} 
-    modal={LocationModal} 
-    modalTitle={ModalTitle}
-    modalHidden={isModalHidden}
-    // setModalHidden={setModalHidden}
-    modalFooter={ModalFooter}
-    modalOnClose={modalOnClose}
-    secondaryModal={ChooseLocationModal}
     title={LocationsTitle}
+    locationModal={LocationModalDefinition}
+    secondaryModal={ChooseLocationModal}
     content={isModalHidden ? LocationsContent : null} 
     footer={null} />
   )

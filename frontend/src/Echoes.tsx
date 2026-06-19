@@ -11,7 +11,6 @@ Root.render(
 );
 
 function Echoes() {
-  // const [count, setCount] = useState(0)
   return (
     <>
       <div>josh echoes here</div>

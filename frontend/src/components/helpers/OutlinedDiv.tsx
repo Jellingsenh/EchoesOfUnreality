@@ -41,6 +41,9 @@ export default function OutlinedDiv({
           bgcolor: 'background.paper',
           px: '4px',
           color: locked ? 'blue' : 'text.primary',
+          // '& .MuiPaper-root': {
+              backgroundColor: '#828080',
+          // },
         }}
       >
         {label}

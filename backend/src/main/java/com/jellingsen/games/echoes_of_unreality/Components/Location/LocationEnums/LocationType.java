@@ -1,22 +1,23 @@
 package com.jellingsen.games.echoes_of_unreality.Components.Location.LocationEnums;
 
 public enum LocationType {
-    DIMENSION, // dimensions overlap
+    DIMENSION, // dimensions overlap (0th, 3rd, 4th, etc)
     UNIVERSE, // one does not simply leave their universe
 
-    GALAXY,
-    SPACE, // same size as a galaxy in size, but empty and/or uncharted
+    GALAXY, // most events are contained within one main galaxy
+    SPACE, // empty space
 
-    STAR,
+    STAR, // there are lots and lots of stars in galxies, but only a few are charted
 
     PLANET,
-    MOON, // same as planet, but orbits a planet instead of a star
-    FEATURE, // orbiting feature of a location, like rings, asteroid belts, black holes, etc
+    MOON,
+    FEATURE, // outer space features (rings, asteroid belts, black holes, quasars, etc)
 
     CONTINENT,
     COUNTRY,
-    AREA, // same size as country, but uninhabited, like a forest, mountain range, ocean, etc
 
+    AREA, // large uninhabited areas (forest, mountain range, ocean, etc)
     CITY,
-    PLACE, // battlemap of a specicfic place, like a collosseum
+
+    PLACE, // battlemap of a specicfic place or landmark, like a collosseum
 }

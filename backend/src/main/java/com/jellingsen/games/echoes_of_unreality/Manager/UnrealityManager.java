@@ -67,19 +67,23 @@ public class UnrealityManager {
 
     public Location generateRandomLocation() {
         Location randomLocation = new Location();
-        return generatePartiallyRandomLocation(randomLocation, null, true); // randomize all fields
+        return generatePartiallyRandomLocation(randomLocation, null, false); // randomize all fields
     }
 
     // PARTIALLY RANDOM LOCATION //
 
     public Location generatePartiallyRandomLocation(Location location, String[] locked, boolean saveToDB) {
+        if (location == null) {
+            return null;
+        }
+
         Vector<String> unlockedVector = new Vector<String>(Arrays.asList(
             "name",
             "type",
             "appearance",
             "summary",
             "size",
-            "modifer",
+            "modifier",
             "nature",
             "society",
             "anomalies",
@@ -96,8 +100,9 @@ public class UnrealityManager {
         }
         String nameStr = (location.name != null) ? "currently named" + location.name : "not yet named";
         System.out.println("  -->  Randomizing " + unlockedSize + " fields for location (" + nameStr + "): " + String.join(", ", unlockedVector));
+        System.out.println(saveToDB ? "    > Saving randomized result to DB..." : "    > Not saving result...");
 
-        CompressedLocation uniqueLoc = generateUniqueCompressedNameAndType(location.name, !unlockedVector.contains("name"), location.type, !unlockedVector.contains("type"));
+        CompressedLocation uniqueLoc = generateUniqueCompressedNameAndType(location.name, !unlockedVector.contains("name"), location.type, !unlockedVector.contains("type"), saveToDB);
         if (uniqueLoc == null) { return null; }
         location.name = uniqueLoc.name;
         location.type = uniqueLoc.type;
@@ -107,32 +112,41 @@ public class UnrealityManager {
         if (unlockedVector.contains("anomalies")) { location.anomalies = generateRandomLocationAnomalies(location.type, location.modifier); } // based on type and modifier (unreal) (use llm?)
 
         if (unlockedVector.contains("parent")) { 
-            CompressedLocation existingParent = databaseConnection.findExistingParent(uniqueLoc); // find any exisitng location that has this as a child
+            CompressedLocation existingParent = null;
+            if (saveToDB) { // only check for existing parent is saving (will be linked on official save later)
+                existingParent = databaseConnection.findExistingParent(uniqueLoc); // find any exisitng location that has this as a child
+            }
             location.parent = (existingParent != null) ? existingParent : generateRandomCompressedParent(location.type, LocationModifier.DISORDERED == location.modifier, false); // based on type and modifier (disordered)
-            location.position = generateRandomPositionOnParent(location.type); // auto-gen new position if parent generated
-        } else { // parent locked, position unlocked
-            if (unlockedVector.contains("position")) { location.position = generateRandomPositionOnParent(location.type); } // based on type
         }
+        if (unlockedVector.contains("position")) { location.position = generateRandomPositionOnParent(location.type); } // based on type
         if (unlockedVector.contains("children")) { 
-            Vector<CompressedLocation> existingChildren = databaseConnection.findAllExistingChildren(uniqueLoc); // find any existing locaions that have this as a parent
+            Vector<CompressedLocation> existingChildren = null;
+            if (saveToDB) {
+                existingChildren = databaseConnection.findAllExistingChildren(uniqueLoc); // find any existing locaions that have this as a parent
+            }
             location.children = joinChildrenAndRemoveDuplicates((existingChildren != null && !existingChildren.isEmpty()) ? existingChildren : generateRandomCompressedChildren(location.type), location.children); // based on type, adds any children passed in
         }
 
         boolean natureUnlocked = unlockedVector.contains("nature");
         boolean societyUnlocked = unlockedVector.contains("society");
         Location parentLocation = null; 
-        if ((natureUnlocked && (LocationType.CONTINENT == location.type || LocationType.COUNTRY == location.type || LocationType.AREA == location.type || LocationType.CITY == location.type || LocationType.PLACE == location.type)) 
-            || (societyUnlocked && (LocationType.CITY == location.type || LocationType.PLACE == location.type))) 
+        if ((natureUnlocked && (LocationType.CONTINENT == location.type 
+                            || LocationType.COUNTRY == location.type 
+                            || LocationType.AREA == location.type 
+                            || LocationType.CITY == location.type 
+                            || LocationType.PLACE == location.type)) 
+            || (societyUnlocked && (LocationType.CITY == location.type 
+                            || LocationType.PLACE == location.type))) 
         { 
             parentLocation = uncompressParentLocation(location.parent, saveToDB, compressLocation(location)); // recursively generate or find parent until a society or nature to inherit is found
             if (parentLocation != null) {
                 location.parent.charted = true; // if parent is uncompressed, it is now charted
             }
         } 
-        if (natureUnlocked) { location.nature = generateRandomLocationNature(location.type, location.modifier, location.size, location.parent.type, (parentLocation == null) ? null : parentLocation.nature, location.children); } // based on type, modifer (deserted or volatile or extreme), size, , children, & parentType (& if contains continent if star) (use llm?)
+        if (natureUnlocked) { location.nature = generateRandomLocationNature(location.type, location.modifier, location.size, (location.parent != null ? location.parent.type : null), (parentLocation == null) ? null : parentLocation.nature, location.children); } // based on type, modifer (deserted or volatile or extreme), size, , children, & parentType (& if contains continent if star) (use llm?)
         if (societyUnlocked) { location.society = generateRandomLocationSociety(uniqueLoc, location.modifier, location.anomalies, location.nature, (parentLocation == null) ? null : parentLocation.society, (parentLocation == null) ? null : parentLocation.children); } // based on type and modifier (deserted or extreme), anomalies, environments, & siblings (use llm?) 
         
-        if (unlockedVector.contains("appearance")) { location.appearance = generateRandomAppearance(location.type, location.size, location.nature, location.parent.type); } // based on type, size, and materials (use llm?)
+        if (unlockedVector.contains("appearance")) { location.appearance = generateRandomAppearance(location.type, location.size, location.nature, (location.parent != null ? location.parent.type : null)); } // based on type, size, and materials (use llm?)
         if (unlockedVector.contains("summary")) { location.summary = generateRandomLocationSummary(location.type, location.anomalies, location.society); } // based on type, anomalies, culture, & secrets (use llm?)
 
         return (saveToDB) ? saveLocationToDatabase(location) : location; // only save if requested
@@ -140,27 +154,32 @@ public class UnrealityManager {
 
     // RANDOM LOCATION GENERATION FUNCTIONS //
 
-    private CompressedLocation generateUniqueCompressedNameAndType(String name, boolean nameLocked, LocationType type, boolean typeLocked) {
+    private CompressedLocation generateUniqueCompressedNameAndType(String name, boolean nameLocked, LocationType type, boolean typeLocked, boolean saveToDB) {
         CompressedLocation compressedLocation = new CompressedLocation();
         compressedLocation.type = (typeLocked) ? type : generateRandomLocationType();
         compressedLocation.name = (nameLocked) ? name : generateRandomLocationName(compressedLocation.type);
-        compressedLocation.charted = false; // set charted to true on uncompression
-        
-        int safeCount = 0;
-        while (databaseConnection.isLocationInCollection(compressedLocation.name, compressedLocation.type)) { 
-            if (nameLocked) { 
-                if (typeLocked) { 
-                    System.out.println("  -->  Location with name " + compressedLocation.name + "and type " + compressedLocation.type + " already exists. Cannot randomizedue to locked name and type fields. Returning null.");
-                    return null; 
-                } 
-                else { // name locked, type unlocked
-                    compressedLocation.type = generateRandomLocationType(); // regen type
+
+        compressedLocation.charted = databaseConnection.isLocationInCollection(compressedLocation.name, compressedLocation.type);
+
+        if (saveToDB && compressedLocation.charted) { // regenerate name if planning to save AND it already exists
+            int safeCount = 0;
+            while (compressedLocation.charted) { 
+                if (nameLocked) { 
+                    if (typeLocked) { 
+                        System.out.println("  -->  Location with name " + compressedLocation.name + " and type " + compressedLocation.type + " already exists. Cannot generate new name & type due to locked name and type fields. Returning null.");
+                        return null; 
+                    } 
+                    else { // name locked, type unlocked
+                        compressedLocation.type = generateRandomLocationType(); // regen type
+                    }
+                } else { // name unlocked
+                    compressedLocation.name = generateRandomLocationName(compressedLocation.type); // regen name
                 }
-            } else { // name unlocked
-                compressedLocation.name = generateRandomLocationName(compressedLocation.type); // regen name
+                if (safeCount++ > 1000) { return null; } // safety break
+                compressedLocation.charted = databaseConnection.isLocationInCollection(compressedLocation.name, compressedLocation.type);
             }
-            if (safeCount++ > 1000) { return null; } // safety break
         }
+    
         return compressedLocation;
     }
 
@@ -289,8 +308,8 @@ public class UnrealityManager {
             case SPACE -> newType = (disordered) ? LocationType.PLACE : LocationType.UNIVERSE;
             case STAR -> {
                 if (disordered) { newType = LocationType.PLANET; }
-                else if (Randomizer.randomIntXtoY(1,20) <= 1) { newType = LocationType.SPACE; } // 5% in empty space
-                else { newType = LocationType.GALAXY; } // 95% in a galaxy
+                // else if (Randomizer.randomIntXtoY(1,20) <= 1) { newType = LocationType.SPACE; } // 5% in empty space
+                else { newType = LocationType.GALAXY; } // 100% in a galaxy
             }
             case PLANET -> newType = (disordered) ? LocationType.MOON : LocationType.STAR;
             case MOON -> newType = (disordered) ? LocationType.STAR : LocationType.PLANET;
@@ -340,7 +359,7 @@ public class UnrealityManager {
             }
         }
 
-        return generateUniqueCompressedNameAndType(null, false, newType, true);
+        return generateUniqueCompressedNameAndType(null, false, newType, true, false);
     }
 
     private Vector<Integer> generateRandomPositionOnParent(LocationType type) { // josh for on-paper mode use average distance to parent
@@ -391,9 +410,7 @@ public class UnrealityManager {
                     default -> numberOfChildren = 0; // 90% no children
                 }
                 for (int i = 0; i < numberOfChildren; i++) {
-                    newChildren.add(generateCompressedLocationByType((Randomizer.randomIntXtoY(1, 5) <= 4) ? 
-                        LocationType.STAR : 
-                        LocationType.FEATURE)); // 80% star, 20% feature
+                    newChildren.add(generateCompressedLocationByType( LocationType.FEATURE)); // 100% feature
                 }
             }
             case STAR -> {
@@ -474,7 +491,7 @@ public class UnrealityManager {
 
     private CompressedLocation generateCompressedLocationByType(LocationType type) {
         if (type == null) { return null; }
-        return generateUniqueCompressedNameAndType(null, false, type, true);
+        return generateUniqueCompressedNameAndType(null, false, type, true, false);
     }
 
     private Vector<CompressedLocation> joinChildrenAndRemoveDuplicates(Vector<CompressedLocation> children, Vector<CompressedLocation> andChildren) {
@@ -660,7 +677,7 @@ public class UnrealityManager {
             case DIMENSION -> { return LocationType.UNIVERSE; }
             case UNIVERSE -> { return (Randomizer.randomIntXtoY(1, 5) <= 4) ? LocationType.SPACE : LocationType.GALAXY; } // 80% space, 20% galaxy
             case GALAXY -> { return LocationType.STAR; }
-            case SPACE -> { return (Randomizer.randomIntXtoY(1, 5) <= 4) ? LocationType.STAR : LocationType.FEATURE; } // 80% star, 20% feature
+            case SPACE -> { return LocationType.FEATURE; } // 100% feature
             case STAR -> { return switch (Randomizer.randomIntXtoY(0, 20)) {
                 case 1 -> LocationType.CONTINENT; // 5%
                 case 2,3 -> LocationType.FEATURE; // 10%
@@ -721,7 +738,7 @@ public class UnrealityManager {
                         return true;
                     }
                 }
-                return true; // true refreshes
+                return true; // true response causes refresh on frontend
             } else {
                 return false;
             }
@@ -734,6 +751,14 @@ public class UnrealityManager {
         CompressedLocation parentLoc = parentAndChildren.remove(0); // pop parent
         System.out.println("  --> Linking "+parentLoc.name+" to "+parentAndChildren.size()+" child(ren) (uncharted locations are ignored)");
 
+        for (CompressedLocation chLoc : parentAndChildren) {
+            if (!chLoc.charted) {
+                System.out.println("    > Skipping uncharted child location: " + chLoc.name + " (" + chLoc.type + ")");
+            } else {
+                System.out.println("    > Linking child location: " + chLoc.name + " (" + chLoc.type + ")");
+            }
+        }
+
         Vector<CompressedLocation> parentLocationsChildren = databaseConnection.getLocationsChildren(parentLoc);
         if (parentLocationsChildren != null) {
             databaseConnection.updateLocationsCompressedChildren(parentLoc, joinChildrenAndRemoveDuplicates(parentLocationsChildren, parentAndChildren));
@@ -743,7 +768,7 @@ public class UnrealityManager {
         }
 
         String returnStr = "Linking complete";
-        System.out.println("> " + returnStr);
+        System.out.println("    > " + returnStr);
         return returnStr;
     }
     
@@ -915,7 +940,7 @@ public class UnrealityManager {
 
         // 1 by charted
         for (int i = 0; i < children.size(); i++) {
-            if (!children.get(i).charted) { // uncharted children go to the end of the list
+            if (children.get(i).charted) { // charted children go to the beginning of the list
                 CompressedLocation chartedLoc = children.remove(i);
                 sortedChildren.add(chartedLoc);
                 i--; // adjust index after removal

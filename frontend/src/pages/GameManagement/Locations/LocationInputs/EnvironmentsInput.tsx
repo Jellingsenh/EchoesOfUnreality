@@ -1,0 +1,54 @@
+import OutlinedDiv from "../../../../components/helpers/OutlinedDiv"
+import SingleEnvironmentInput from "./SingleEnvironmentInput"
+
+export default function EnvironmentsInput({
+    currentInput,
+    setCurrentInput,
+    currentInputLocked,
+    // setCurrentInputLocked,
+    viewMode,
+}:{
+    currentInput: string[] | null,
+    setCurrentInput: React.Dispatch<React.SetStateAction<string[] | null>>,
+    currentInputLocked: boolean,
+    // setCurrentInputLocked: React.Dispatch<React.SetStateAction<boolean>>,
+    viewMode: boolean,
+}) {
+    return <OutlinedDiv 
+        label={'Environments'}
+        locked={currentInputLocked || viewMode}
+    >
+        <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '10px',
+            marginTop: (currentInput && currentInput.length > 0) ? '10px' : '0px',
+            marginLeft: '5px',
+            marginBottom: ((currentInput && currentInput.length > 0) && currentInputLocked) ? '-5px' : '0px',
+        }}>
+            {currentInput && currentInput.map((env, index) => ( <SingleEnvironmentInput key={index}
+                env={env}
+                index={index}
+                setCurrentInput={setCurrentInput}
+                currentInputLocked={currentInputLocked}
+                viewMode={viewMode}
+            /> ))}
+            <div style={{
+                display: 'flex',
+                flexDirection: 'row',
+                gap: '5px',
+                alignSelf: (currentInput && currentInput.length > 0) ? 'center' : undefined,
+            }}>
+                {((currentInput && currentInput.length > 0) ? '' : 'No Environments.  ')}
+                {!viewMode && !currentInputLocked && <button style={{
+                    marginLeft: '5px',
+                }}
+                onClick={() => {
+                    setCurrentInput(prevEnvs => [...prevEnvs || [], ''])
+                }}>
+                    {'  Add environment'}
+                </button>}
+            </div>
+        </div>
+    </OutlinedDiv>
+}

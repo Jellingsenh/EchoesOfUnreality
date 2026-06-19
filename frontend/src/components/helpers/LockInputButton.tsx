@@ -15,7 +15,7 @@ export default function LockInputButton({
         marginLeft: '-3px',
     }}
     onClick={() => {
-        setLocked(!locked);
+        setLocked(prev => !prev);
     }}>
         {locked ? 
             <LockRoundedIcon /> : 

@@ -1,28 +1,16 @@
 import type { JSX } from "react";
 import { baseWebUrl } from "../../resources/constants";
-import DialogContent from "@mui/material/DialogContent";
-import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogActions from "@mui/material/DialogActions";
 
 export default function WebPage({
     backButton,
-    modal,
-    modalTitle,
-    modalHidden,
-    modalFooter,
-    modalOnClose,
+    locationModal,
     secondaryModal,
     title,
     content,
     footer
 }:{
     backButton: JSX.Element,
-    modal: JSX.Element | null,
-    modalTitle: JSX.Element | null,
-    modalHidden: boolean | null,
-    modalFooter: JSX.Element | null,
-    modalOnClose?: () => void | null,
+    locationModal: JSX.Element | null,
     secondaryModal: JSX.Element | null,
     title: JSX.Element,
     content: JSX.Element | null,
@@ -54,42 +42,7 @@ export default function WebPage({
         </div>
         
         {/* HIDDEN MODAL */}
-        <Dialog 
-            open={!modalHidden} 
-            onClose={modalOnClose} 
-            fullWidth 
-            maxWidth={false}
-            sx={{
-                "& .MuiDialog-container": {
-                alignItems: "flex-start", // Aligns the dialog to the top
-                },
-            }}
-            slotProps={{ 
-                paper: { 
-                    sx: { 
-                        width: '90vw', 
-                        minHeight: '200px',
-                        maxHeight: '80vh',
-                        marginTop: '12vh',
-                    } 
-                } 
-        }}>
-            {(modalTitle != null) && <DialogTitle sx={{ 
-                paddingX: '20px',
-                paddingTop: '15px',
-                marginBottom: '-20px',
-            }}>
-                {modalTitle}
-            </DialogTitle>}
-            <DialogContent className='no-scrollbar' sx={{ 
-                mt: 2,
-                paddingX: '0px',
-                marginX: '20px',
-            }}>
-                {modal}
-            </DialogContent>
-            {(modalFooter != null) && <DialogActions>{modalFooter}</DialogActions>}
-        </Dialog>
+        {locationModal}
 
         {/* Secondary MODAL */}
         {secondaryModal}

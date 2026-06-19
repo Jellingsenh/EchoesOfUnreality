@@ -355,7 +355,7 @@ public class DatabaseConnection {
         existingParent.type = LocationType.valueOf(tempDoc.get("type", String.class));
         existingParent.name = tempDoc.get("name", String.class);
         existingParent.charted = true; // if found as a parent, it is charted
-        System.out.println("    > Found exisitng parent for "+currentLoc.name+": " + existingParent.name);
+        System.out.println("    > Found existing parent for "+currentLoc.name+": " + existingParent.name);
         return existingParent;
     }
 
@@ -373,7 +373,7 @@ public class DatabaseConnection {
             chLoc.charted = true; // if found as a child, it is charted
             existingChildren.add(chLoc);
         }
-        System.out.println("    > Found "+existingChildren.size()+" exisitng children for "+currentLoc.name);
+        System.out.println("    > Found "+existingChildren.size()+" existing children for "+currentLoc.name);
         return existingChildren;
     }
 

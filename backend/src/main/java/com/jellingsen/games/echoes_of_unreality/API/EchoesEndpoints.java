@@ -20,9 +20,9 @@ import com.jellingsen.games.echoes_of_unreality.Components.Location.LocationEnum
 import com.jellingsen.games.echoes_of_unreality.Manager.UnrealityManager;
 
 @SpringBootApplication
-@CrossOrigin(origins = "http://localhost:2012")
 @RestController
 @RequestMapping("/echoes")
+@CrossOrigin(origins = "http://localhost:2012")
 public class EchoesEndpoints {
     private UnrealityManager unrealityManager;
 
@@ -59,10 +59,10 @@ public class EchoesEndpoints {
         return unrealityManager.getPaginatedCompressedLocations(offset, limit, filter);
     }
 
-    // @GetMapping("/generateRandom/location")
-	// public Location generateRandomLocation() {
-    //     return unrealityManager.generateRandomLocation();
-    // }
+    @GetMapping("/generateRandomLocation")
+	public Location generateRandomLocation() {
+        return unrealityManager.generateRandomLocation();
+    }
 
     // @GetMapping("/generateRandom/location/{type}")
     // public Location generateRandomLocationFromType(@PathVariable LocationType type) {
