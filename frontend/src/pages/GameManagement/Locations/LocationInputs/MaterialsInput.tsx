@@ -1,4 +1,4 @@
-import OutlinedDiv from "../../../../components/helpers/OutlinedDiv"
+import OutlinedDiv from "../../../../components/OutlinedDiv"
 import SingleMaterialInput from "./SingleMaterialInput"
 
 export default function MaterialsInput({
@@ -16,6 +16,10 @@ export default function MaterialsInput({
     viewMode: boolean,
     // createMode: boolean,
 }) {
+    if (viewMode && (currentInput === null || currentInput.length === 0 || currentInput.every(item => item.trim() === ''))) {
+        return <></> // josh need to fix spacing still
+    }
+    
     return <OutlinedDiv 
         label={'Materials'}
         locked={currentInputLocked || viewMode}

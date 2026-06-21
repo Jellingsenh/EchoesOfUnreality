@@ -1,5 +1,5 @@
 import TextField from "@mui/material/TextField"
-import LockInputButton from "../../../../components/helpers/LockInputButton"
+import LockInputButton from "../../../../components/LockInputButton"
 import { useState } from "react"
 
 export default function NameInput({
@@ -23,7 +23,7 @@ export default function NameInput({
 
     function handleSubmit() {
         // console.log('submitting name: ' + nameValue)
-        setCurrentInput(nameValue ?? '')
+        setCurrentInput(nameValue)
     }
 
     return <>

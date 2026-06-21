@@ -4,7 +4,7 @@ export default function LockUnlockAllButton({
     unlockAllInputs,
     viewMode,
 }:{
-    allInputsUnlocked: () => boolean,
+    allInputsUnlocked: boolean,
     lockAllInputs: () => void,
     unlockAllInputs: () => void,
     viewMode: boolean,
@@ -19,13 +19,13 @@ export default function LockUnlockAllButton({
             minWidth: 'max-content',
         }}
         onClick={() => {
-            if (allInputsUnlocked()) {
+            if (allInputsUnlocked) {
                 lockAllInputs()
             } else {
                 unlockAllInputs()
             }  
         }}>
-            {allInputsUnlocked() ? 
+            {allInputsUnlocked ? 
                 'Lock all' : 
                 'Unlock all'}
         </button>}

@@ -24,6 +24,7 @@ import com.jellingsen.games.echoes_of_unreality.API.Filters.LocationFilterOption
 import com.jellingsen.games.echoes_of_unreality.Components.Character.NPC;
 import com.jellingsen.games.echoes_of_unreality.Components.Character.PlayableCharacter;
 import com.jellingsen.games.echoes_of_unreality.Components.Character.CharacterEnums.CharacterType;
+import com.jellingsen.games.echoes_of_unreality.Components.Helpers.VectorChecks;
 import com.jellingsen.games.echoes_of_unreality.Components.Location.CompressedLocation;
 import com.jellingsen.games.echoes_of_unreality.Components.Location.Location;
 import com.jellingsen.games.echoes_of_unreality.Components.Location.LocationEnums.AtmosphereFilter;
@@ -73,7 +74,6 @@ public class DatabaseConnection {
         this.randomListsDatabase = this.mongoClient.getDatabase(randomListsDatabaseName).withCodecRegistry(pojoCodecRegistry); // lists for generation
         this.randomLocationNamesCollection = createOrGetCollection(this.randomListsDatabase, randomLocationNamesList);
         this.randomCharacterNamesCollection = createOrGetCollection(this.randomListsDatabase, randomCharacterNamesList);
-        // josh lots more?
 
         this.locationsAndCharactersDatabase = this.mongoClient.getDatabase(locationsAndCharactersDatabaseName).withCodecRegistry(pojoCodecRegistry); // actual generated data
         this.locationsCollection = createOrGetCollection(this.locationsAndCharactersDatabase, locationsCollectionName);
@@ -105,7 +105,17 @@ public class DatabaseConnection {
     // GET UP TO 50 LOCATIONS, COMPRESSED //
 
     public Vector<CompressedLocation> getPaginatedCompressedLocations(int offset, int limit, LocationFilterOptions filter) {
-        Bson locationsFilter = combineFilters(combineFilters(getNameFilter(filter.name), getTypeFilter(filter.type)), combineFilters(getAtmosphereFilter(filter.breathable), getParentFilter(filter.parent)));
+        
+        Bson locationsFilter = combineFilters(
+            combineFilters(
+                getNameFilter(filter.name), 
+                getTypeFilter(filter.type)
+            ), 
+            combineFilters(
+                getAtmosphereFilter(filter.breathable), 
+                getParentFilter(filter.parent)
+            )
+        );
         Bson locationsSorts;
         switch (filter.sortBy) {
             case NAME -> locationsSorts = Sorts.orderBy(getAscendingOrDescendingSort(filter.descending, "name"), getAscendingOrDescendingSort(filter.descending, "timestamp")); // secondary sort by time
@@ -200,8 +210,12 @@ public class DatabaseConnection {
     }
     private Bson getParentFilter(CompressedLocation parent) {
         if (parent == null) { return null; }
-        return Filters.eq("parent", parent);
+        return combineFilters(
+            Filters.eq("parent.name", parent.name), 
+            Filters.eq("parent.type", parent.type)
+        );
     }
+
     private Bson combineFilters(Bson f1, Bson f2) {
         if (f1 == null) { return f2; }
         if (f2 == null) { return f1; }
@@ -330,7 +344,10 @@ public class DatabaseConnection {
     }
 
     public Location getLocation(String locName, LocationType locType) {
-        Document tempDoc = this.locationsCollection.find(Filters.and(Filters.eq("name", locName), Filters.eq("type", locType))).first();
+        Document tempDoc = this.locationsCollection.find(combineFilters(
+            Filters.eq("name", locName), 
+            Filters.eq("type", locType)))
+        .first();
         if (tempDoc == null) { return null; }
         ObjectNode node = (ObjectNode) jsonMapper.readTree(tempDoc.toJson());
         String _id = jsonMapper.writeValueAsString(node.remove("_id").get("$oid")).replace("\"", "");
@@ -341,11 +358,14 @@ public class DatabaseConnection {
     }
 
     public CompressedLocation findExistingParent(CompressedLocation currentLoc) {
+        System.out.println("  --> Searching for an existing parent of "+currentLoc.name);
         CompressedLocation existingParent = null;
-
-        Document tempDoc = this.locationsCollection
-        .find(Filters.in("children", currentLoc))
-            .projection(new Document("type", 1).append("name", 1))
+        Document tempDoc = this.locationsCollection    
+        .find(combineFilters( // get only locations with currentLoc in children
+            Filters.in("children.name", currentLoc.name),
+            Filters.in("children.type", currentLoc.type)
+        ))
+        .projection(new Document("name", 1).append("type", 1))
         .first();
         if (tempDoc == null) { 
             System.out.println("    > No existing parent found for "+currentLoc.name);
@@ -360,26 +380,29 @@ public class DatabaseConnection {
     }
 
     public Vector<CompressedLocation> findAllExistingChildren(CompressedLocation currentLoc) {
+        System.out.println("  --> Searching for any existing children of "+currentLoc.name);
        Vector<CompressedLocation> existingChildren = new Vector<CompressedLocation>();
 
         for (Document tempDoc : this.locationsCollection
-        .find(Filters.eq("parent", currentLoc))
-            .projection(new Document("type", 1).append("name", 1))) 
-        {
-            // System.out.println("josh tempDoc for existing child retreival: " + tempDoc);
+        .find(getParentFilter(currentLoc)) // get only locations with currentLoc as parent
+        .projection(new Document("name", 1).append("type", 1))) {
+            // System.out.println("tempDoc for existing child retreival: " + tempDoc);
             CompressedLocation chLoc = new CompressedLocation();
             chLoc. type = LocationType.valueOf(tempDoc.get("type", String.class));
             chLoc.name = tempDoc.get("name", String.class);
             chLoc.charted = true; // if found as a child, it is charted
             existingChildren.add(chLoc);
         }
-        System.out.println("    > Found "+existingChildren.size()+" existing children for "+currentLoc.name);
+        System.out.println("    > Found "+existingChildren.size()+" existing child(ren) for "+currentLoc.name);
         return existingChildren;
     }
 
     public Vector<CompressedLocation> getLocationsChildren(CompressedLocation loc) {
         Document tempDoc = this.locationsCollection
-        .find(Filters.and(Filters.eq("name", loc.name), Filters.eq("type", loc.type)))
+        .find(combineFilters(
+            Filters.eq("name", loc.name),
+            Filters.eq("type", loc.type)
+        ))
             .projection(new Document("children", 1))
         .first();
         if (tempDoc == null) { return null; }
@@ -392,27 +415,44 @@ public class DatabaseConnection {
     } 
 
     public void updateLocationsCompressedParent(CompressedLocation loc, CompressedLocation newParent) {
-        this.locationsCollection.updateOne(Filters.and(Filters.eq("name", loc.name), Filters.eq("type", loc.type)),
-        Updates.set("parent",  newParent));
+        this.locationsCollection.updateOne(combineFilters(
+            Filters.eq("name", loc.name),
+            Filters.eq("type", loc.type)
+        ), Updates.set("parent", newParent));
     }
 
     public void updateLocationsCompressedChildren(CompressedLocation loc, Vector<CompressedLocation> newChildren) {
-        this.locationsCollection.updateOne(Filters.and(Filters.eq("name", loc.name), Filters.eq("type", loc.type)),
+        this.locationsCollection.updateOne(combineFilters(
+            Filters.eq("name", loc.name),
+            Filters.eq("type", loc.type)
+        ),
         Updates.set("children",  newChildren));
     }
 
-    public void unlinkChildFromAllOtherParents(CompressedLocation chLoc, CompressedLocation parentLoc) {
-        CompressedLocation foundParentLoc = findExistingParent(chLoc);
-        if (!foundParentLoc.name.equals(parentLoc.name) || foundParentLoc.type != parentLoc.type) {
-            Vector<CompressedLocation> children = getLocationsChildren(foundParentLoc);
-            children = removeChild(children, chLoc);
-            updateLocationsCompressedChildren(foundParentLoc, children);
+    public void unlinkParentFromAllOtherChildren(CompressedLocation pLoc, Vector<CompressedLocation> children) { // if childern == null, unlink from all children   
+        Vector<CompressedLocation> foundChildrenLocs = findAllExistingChildren(pLoc);
+        if (foundChildrenLocs == null || foundChildrenLocs.isEmpty()) return; // found no children
+        for (CompressedLocation foundChLoc : foundChildrenLocs) {
+            if (children == null || !VectorChecks.childrenVectorContainsNameAndType(children, foundChLoc)) {// removeParent (unlink children not contained in current) -> (unlink all children if null)
+                System.out.println("      > Unlinking "+foundChLoc.name+" from parent "+pLoc.name);
+                updateLocationsCompressedParent(foundChLoc, null);
+            }
         }
     }
 
-    private Vector<CompressedLocation> removeChild(Vector<CompressedLocation> vector, CompressedLocation chLoc) {
+    public void unlinkChildFromAllOtherParents(CompressedLocation chLoc, CompressedLocation parentLoc) { // if parentLoc == null, remove from all parents
+        CompressedLocation foundParentLoc = findExistingParent(chLoc);
+        if (foundParentLoc == null) return; // found no parents
+        if (parentLoc != null && (foundParentLoc.name.equals(parentLoc.name) && foundParentLoc.type == parentLoc.type)) return; // found the same parent, no need to unlink
+        System.out.println("      > Unlinking "+foundParentLoc.name+" from child "+chLoc.name);
+        Vector<CompressedLocation> children = getLocationsChildren(foundParentLoc);
+        children = removeChild(children, chLoc);
+        updateLocationsCompressedChildren(foundParentLoc, children);
+    }
+
+    private Vector<CompressedLocation> removeChild(Vector<CompressedLocation> childrenIn, CompressedLocation chLoc) {
         Vector<CompressedLocation> updatedChildren = new Vector<CompressedLocation>();
-        for (CompressedLocation child : vector) {
+        for (CompressedLocation child : childrenIn) {
             if (!child.name.equals(chLoc.name) || child.type != chLoc.type) {
                 updatedChildren.add(child);
             }
@@ -420,13 +460,13 @@ public class DatabaseConnection {
         return updatedChildren;
     }
 
-    public void unlinkChildFromDeletedParent(CompressedLocation chLoc) {
-        updateLocationsCompressedParent(chLoc, null);
-    }
+    // public void unlinkChildFromDeletedParent(CompressedLocation chLoc) {
+    //     updateLocationsCompressedParent(chLoc, null);
+    // }
 
-    public void unlinkParentFromDeletedChild(CompressedLocation parent, CompressedLocation loc) {
-        updateLocationsCompressedChildren(parent, removeChild(getLocationsChildren(parent), loc));
-    }
+    // public void unlinkParentFromDeletedChild(CompressedLocation parent, CompressedLocation loc) {
+    //     updateLocationsCompressedChildren(parent, removeChild(getLocationsChildren(parent), loc));
+    // }
 
     // public Location getRandomChartedLocation() {
     //     Document tempDoc = this.locationsCollection.aggregate(Arrays.asList(sample(1))).first();
@@ -460,7 +500,7 @@ public class DatabaseConnection {
     //         .projection(new Document("parent", 1))
     //     .first();
     //     if (tempDoc == null) { return null; }
-    //     System.out.println("josh TempDoc for parent retrieval: " + tempDoc.toJson());
+    //     System.out.println("TempDoc for parent retrieval: " + tempDoc.toJson());
     //     CompressedLocation tempParent = jsonMapper.readValue(tempDoc.get("parent", Document.class).toJson(), CompressedLocation.class);
     //     return tempParent;
     // }
@@ -590,7 +630,7 @@ public class DatabaseConnection {
 
     // CLEAR DATABASES //
 
-    public void clearAllCollections() { // josh BE CAREFUL WITH THIS, IT WILL DELETE ALL DATA IN THE DATABASES, FOR TESTING ONLY
+    public void clearAllCollections() { // BE CAREFUL WITH THIS, IT WILL DELETE ALL DATA IN THE DATABASES, FOR TESTING ONLY
         this.randomLocationNamesCollection.drop();
         this.randomCharacterNamesCollection.drop();
         this.locationsCollection.drop();

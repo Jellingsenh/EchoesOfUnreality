@@ -4,7 +4,7 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import type { JSX } from "react";
 
-export default function LocationModal({
+export default function ViewLocationModal({
     modalHidden,
     modalOnClose,
     modalTitle,

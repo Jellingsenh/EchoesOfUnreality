@@ -20,6 +20,10 @@ export default function SingleMaterialInput({
         setTempInputValue(mat ?? '')
     }, [mat])
 
+    if (viewMode && (mat === null || mat === '')) {
+        return <></> // josh need to fix spacing still
+    }
+
     const actualInputValue:string|null = (tempInputValue !== '') ? tempInputValue : (mat ?? '')
 
     return <div style={{

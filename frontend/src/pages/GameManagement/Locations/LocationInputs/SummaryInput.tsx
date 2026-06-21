@@ -1,5 +1,5 @@
 import TextField from "@mui/material/TextField";
-import LockInputButton from "../../../../components/helpers/LockInputButton";
+import LockInputButton from "../../../../components/LockInputButton";
 import { useState } from "react";
 
 export default function SummaryInput({
@@ -17,12 +17,17 @@ export default function SummaryInput({
     viewMode: boolean,
     // createMode: boolean,
 }){
-    const [tempInputValue, setTempInputValue] = useState<string | null>(currentInput ?? '')
+    const [tempInputValue, setTempInputValue] = useState<string | null>(currentInput ?? '') // declare hooks at the top
+
+    if (viewMode && (currentInput === null || currentInput === '')) {
+        return <></> // josh need to fix spacing still
+    }
+
     const actualInputValue:string|null = (tempInputValue !== '') ? tempInputValue : (currentInput ?? '')
 
     function handleSubmit() {
         // console.log('input value submitted: ' + actualInputValue)
-        setCurrentInput(actualInputValue ?? '')
+        setCurrentInput(actualInputValue)
     }
 
     return <div style={{

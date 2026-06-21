@@ -10,7 +10,7 @@ import com.jellingsen.games.echoes_of_unreality.Components.Location.CompressedLo
     "history", 
     "religion", 
     "technology", 
-    "governemnt", 
+    "government", 
     "economy", 
     "secrets", 
     "allies", 
@@ -21,7 +21,7 @@ public class LocationSociety {
     public String technology; // what type of technology is available here
     public String history; // history of this location, what has changed
     public String culture; // who the people are
-    public String governemnt; // how the people are goverend
+    public String government; // how the people are goverend
     public String economy; // the way the economy is organized
     public String secrets; // secrets of nature, the government, or people
     public String allies; // allies of the government
@@ -37,11 +37,11 @@ public class LocationSociety {
         this.technology = generateTechnology(anomalies, environments);
         this.history = generateHistory(); // based on religion & technology
         this.culture = generateCulture(environments); // based on environment, technology, history, and religion
-        this.governemnt = generateGovernment(); // based on culture
+        this.government = generateGovernment(); // based on culture
 
         if (extreme) {
             // josh potential llm
-            this.governemnt = "extreme " + this.governemnt;
+            this.government = "extreme " + this.government;
             this.religion = "extreme " + this.religion;
             this.culture = "extreme " + this.culture;
             this.technology = "extreme " + this.technology;
@@ -84,7 +84,7 @@ public class LocationSociety {
 
     public String generateAlliesAndEnemies(Vector<CompressedLocation> siblings, boolean extreme) {
         if (siblings == null) { return null; }
-        // any siblings with the same governemnt are allies
+        // any siblings with the same government are allies
         return "Allies and enemies based on government and economy and siblings: "; // josh TODO: make this more complex and less placeholder
     }
 }

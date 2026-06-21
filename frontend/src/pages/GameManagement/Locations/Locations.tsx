@@ -8,11 +8,12 @@ import LocationFilters from "./LocationsFilterParts/LocationFilters"
 import InfiniteLocationList from "./LocationsList/InfiniteLocationList"
 import CreateLocationButton from "./LocationButtons/CreateLocationButton"
 import { getTextWidth } from "../../../components/helpers/TextHelpers"
-import LocationModal1 from "./LocationModals/LocationModal1"
-import LocationModal2 from "./LocationModals/LocationModal2"
 import doMobileFormatCheck from "../../../components/helpers/doMobileFormatCheck"
 import getInitialLocationsFromAPI from "./LocationsNetworking/getInitialLocationsFromAPI"
 import getMoreLocationsFromAPI from "./LocationsNetworking/getMoreLocationsFromAPI"
+import ViewLocationModalWrapper from "./LocationModals/ViewLocationModalWrapper"
+import ChooseLocationModalWrapper from "./LocationModals/ChooseLocationModalWrapper"
+import GenerateLocationButton from "./LocationButtons/GenerateLocationButton"
 
 Root.render(
   <StrictMode>
@@ -151,9 +152,11 @@ function Locations() {
 
   function chooseLocationForRelative(location: {name: string, type: string}) {
       if (secondaryModalParentMode) {
+          // console.log('choosing parent location: ' + location.name + ', ' + location.type)
           setNewParentName(location.name)
           setNewParentType(location.type)
       } else {
+          // console.log('choosing child location: ' + location.name + ', ' + location.type)
           setNewChildName(location.name)
           setNewChildType(location.type)
       }
@@ -170,13 +173,33 @@ function Locations() {
       setExcludedListLocations(prev => prev.filter(location => location.name !== name || location.type !== type))
   }
 
+  const chooseModalGenerateButton = (locationParentName && locationParentType) ? null : // if parent exists, do ot generate from list (must instead click re-generate)
+    <GenerateLocationButton 
+      closeModal2={() => setChooseLocationModalHidden(true)} // when generate button is in modal, close modal on press
+      parentMode={true} // for both
+      addToExcludedListLocations={addToExcludedList} // for both
+      removeFromExcludedListLocations={removeFromExcludedList} // for both
+
+      parentNameInput={locationParentName} // for parent
+      setParentNameInput={setLocationParentName} // for parent
+      parentTypeInput={locationParentType} // for parent
+      setParentTypeInput={setLocationParentType} // for parent
+      setParentChartedInput={setLocationParentCharted} // for parent
+      setPositionInputLocked={setPositionLocked} // for parent
+      childType={locationType} // for parent
+      childDisordered={'DISORDERED' === locationType} // for parent
+      
+      parentType={locationType} // for child
+      setCurrentChildren={setLocationChildren} // for child
+    />
+
   // WEPPAGE CONTENT
 
   // BACK BUTTON
   const BackToGM = (<a href={baseWebUrl + "/routes/gamemanagement"}>{'< Game Management'}</a>);
 
   // MODAL 1
-  const LocationModalDefinition = <LocationModal1 
+  const LocationModalDefinition = <ViewLocationModalWrapper 
     isMobile={isMobile}
     isModalHidden={isModalHidden}
     setModalHidden={setModalHidden}
@@ -220,18 +243,10 @@ function Locations() {
   />
 
   // MODAL 2 
-  const ChooseLocationModal = <LocationModal2 
+  const ChooseLocationModal = <ChooseLocationModalWrapper 
     chooseLocationModalHidden={chooseLocationModalHidden}
     setChooseLocationModalHidden={setChooseLocationModalHidden}
     secondaryModalParentMode={secondaryModalParentMode}
-    locationParentName={locationParentName}
-    setLocationParentName={setLocationParentName}
-    locationParentType={locationParentType}
-    setLocationParentType={setLocationParentType}
-    setLocationParentCharted={setLocationParentCharted}
-    locationType={locationType}
-    addToExcludedList={addToExcludedList}
-    removeFromExcludedList={removeFromExcludedList}
     excludedListLocations={excludedListLocations}
     allCompressedLocations={allCompressedLocations}
     noLocationsExist={noLocationsExist}
@@ -239,9 +254,8 @@ function Locations() {
     loadMoreRef={loadMoreRef}
     endOflist={endOflist}
     resetLocationFilters={resetLocationFilters}
-    setLocationChildren={setLocationChildren}
     chooseLocationForRelative={chooseLocationForRelative}
-    setPositionLocked={setPositionLocked}
+    generateRelativeLocationButton={chooseModalGenerateButton}
     searchStr={searchStr}
     setSearchStr={setSearchStr}
     typeFilter={typeFilter}

@@ -3,7 +3,7 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import type { JSX } from "react";
 
-export default function ChooseParentOrChildModal({
+export default function ChooseLocationModal({
     modalContent,
     chooseLocationModalHidden,
     setChooseLocationModalHidden,

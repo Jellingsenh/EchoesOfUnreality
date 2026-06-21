@@ -1,5 +1,5 @@
-import OutlinedDiv from "../../../../components/helpers/OutlinedDiv"
-import LockInputButton from "../../../../components/helpers/LockInputButton"
+import OutlinedDiv from "../../../../components/OutlinedDiv"
+import LockInputButton from "../../../../components/LockInputButton"
 import SocietyPartInput from "../LocationInputs/SocietyPartInput"
 
 export default function SocietySection({
@@ -49,6 +49,18 @@ export default function SocietySection({
     viewMode: boolean,
     // createMode: boolean,
 }) {
+    if (viewMode && ((currentHistoryInput === null || currentHistoryInput === '') 
+            && (currentReligionInput === null || currentReligionInput === '') 
+            && (currentTechnologyInput === null || currentTechnologyInput === '') 
+            && (currentCultureInput === null || currentCultureInput === '') 
+            && (currentGovernmentInput === null || currentGovernmentInput === '') 
+            && (currentEconomyInput === null || currentEconomyInput === '') 
+            && (currentSecretsInput === null || currentSecretsInput === '') 
+            && (currentAlliesInput === null || currentAlliesInput === '') 
+            && (currentEnemiesInput === null || currentEnemiesInput === ''))) {
+        return <></> // josh need to fix spacing still
+    }
+
     return <div style={{
         display: 'flex',
         flexDirection: 'row',
@@ -177,17 +189,36 @@ export default function SocietySection({
                         display: 'flex',
                         alignSelf: 'center',
                     }}>
-                        {!viewMode && !currentInputLocked &&
-                            currentCultureInput === '' &&
-                            currentHistoryInput === '' &&
-                            currentReligionInput === '' &&
-                            currentTechnologyInput === '' &&
-                            currentGovernmentInput === '' &&
-                            currentEconomyInput === '' &&
-                            currentSecretsInput === '' &&
-                            currentAlliesInput === '' &&
-                            currentEnemiesInput === '' &&
-                        <button style={{
+                        {/* {currentCultureInput}
+                        {currentHistoryInput}
+                        {currentReligionInput}
+                        {currentTechnologyInput}
+                        {currentGovernmentInput}
+                        {currentEconomyInput}
+                        {currentSecretsInput}
+                        {currentAlliesInput}
+                        {currentEnemiesInput} */}
+                        {!viewMode && !currentInputLocked 
+                        &&
+                            (!currentCultureInput &&
+                            !currentHistoryInput &&
+                            !currentReligionInput &&
+                            !currentTechnologyInput &&
+                            !currentGovernmentInput &&
+                            !currentEconomyInput &&
+                            !currentSecretsInput &&
+                            !currentAlliesInput &&
+                            !currentEnemiesInput)
+                            // || (currentCultureInput === null &&
+                            // currentHistoryInput === null &&
+                            // currentReligionInput === null &&
+                            // currentTechnologyInput === null &&
+                            // currentGovernmentInput === null &&
+                            // currentEconomyInput === null &&
+                            // currentSecretsInput === null &&
+                            // currentAlliesInput === null &&
+                            // currentEnemiesInput === null) 
+                        && <button style={{
                             alignSelf: 'center',
                             marginBottom: '5px'
                         }}
@@ -223,6 +254,7 @@ export default function SocietySection({
                         // border:'1px solid red', 
                         // marginLeft: '10px',
                         // marginBottom: '5px',
+                        marginLeft: '5px',
                         minWidth: 'max-content',
                     }}
                     onClick={() => {

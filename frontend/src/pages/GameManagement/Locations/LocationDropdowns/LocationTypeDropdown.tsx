@@ -2,7 +2,7 @@ import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
-import LockInputButton from "../../../../components/helpers/LockInputButton";
+import LockInputButton from "../../../../components/LockInputButton";
 
 export default function LocationTypeDropdown({
     currentInput,

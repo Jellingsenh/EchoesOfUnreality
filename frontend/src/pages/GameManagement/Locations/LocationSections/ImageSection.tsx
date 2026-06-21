@@ -1,4 +1,4 @@
-import OutlinedDiv from "../../../../components/helpers/OutlinedDiv"
+import OutlinedDiv from "../../../../components/OutlinedDiv"
 
 export default function ImageSection({
     viewMode,
@@ -9,6 +9,9 @@ export default function ImageSection({
     imageInput: string | null,
     setImageInput: React.Dispatch<React.SetStateAction<string | null>>,
 }) {
+    if (viewMode && !imageInput) {
+        return <></> // josh need to fix spacing still
+    }
     return <div style={{
         display: 'flex',
         flexDirection: 'row',
@@ -52,6 +55,7 @@ export default function ImageSection({
                     </div>
                     {!viewMode && <button style={{
                         minWidth: 'max-content',
+                        marginLeft: '5px',
                     }}
                     onClick={() => {
                         setImageInput('josh new image') // josh todo make image

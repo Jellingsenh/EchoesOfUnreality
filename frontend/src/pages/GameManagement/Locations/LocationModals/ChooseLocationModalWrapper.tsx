@@ -1,21 +1,12 @@
-import ChooseParentOrChildModal from "./ChooseParentOrChildModal";
-import GenerateLocationButton from "../LocationButtons/GenerateLocationButton";
+import ChooseParentOrChildModal from "./ChooseLocationModal";
 import InfiniteLocationList from "../LocationsList/InfiniteLocationList";
 import LocationFilters from "../LocationsFilterParts/LocationFilters";
-import type { Ref } from "react";
+import type { JSX, Ref } from "react";
 
-export default function LocationModal2({
+export default function ChooseLocationModalWrapper({
     chooseLocationModalHidden,
     setChooseLocationModalHidden,
     secondaryModalParentMode,
-    locationParentName,
-    setLocationParentName,
-    locationParentType,
-    setLocationParentType,
-    setLocationParentCharted,
-    locationType,
-    addToExcludedList,
-    removeFromExcludedList,
     excludedListLocations,
     allCompressedLocations,
     noLocationsExist,
@@ -23,9 +14,8 @@ export default function LocationModal2({
     loadMoreRef,
     endOflist,
     resetLocationFilters,
-    setLocationChildren,
     chooseLocationForRelative,
-    setPositionLocked,
+    generateRelativeLocationButton,
     searchStr,
     setSearchStr,
     typeFilter,
@@ -40,14 +30,6 @@ export default function LocationModal2({
     chooseLocationModalHidden: boolean,
     setChooseLocationModalHidden: React.Dispatch<React.SetStateAction<boolean>>,
     secondaryModalParentMode: boolean | null,
-    locationParentName: string | null,
-    setLocationParentName: React.Dispatch<React.SetStateAction<string | null>>,
-    locationParentType: string | null,
-    setLocationParentType: React.Dispatch<React.SetStateAction<string | null>>,
-    setLocationParentCharted: React.Dispatch<React.SetStateAction<boolean | null>>,
-    locationType: string | null,
-    addToExcludedList: (name: string, type: string) => void,
-    removeFromExcludedList: (name: string, type: string) => void,
     excludedListLocations: {name: string, type: string}[],
     allCompressedLocations: {name: string, type: string}[],
     noLocationsExist: boolean | null,
@@ -55,9 +37,8 @@ export default function LocationModal2({
     loadMoreRef: Ref<HTMLDivElement>,
     endOflist: boolean,
     resetLocationFilters: () => void,
-    setLocationChildren: React.Dispatch<React.SetStateAction<{ name: string; type: string; charted: boolean; }[] | null>>,
     chooseLocationForRelative: (location: { name: string; type: string; }) => void,  
-    setPositionLocked: React.Dispatch<React.SetStateAction<boolean>>,
+    generateRelativeLocationButton: JSX.Element | null,
     searchStr: string | null,
     setSearchStr: React.Dispatch<React.SetStateAction<string | null>>,
     typeFilter: string | null,
@@ -70,7 +51,6 @@ export default function LocationModal2({
     setDescending: React.Dispatch<React.SetStateAction<boolean>>,
 }) {
     // MODAL 2 CONTENT
-
     const ChooseLocationModalContent = (<div style={{
         // border: '1px solid red',
         marginLeft: '-20px',
@@ -119,33 +99,16 @@ export default function LocationModal2({
             overflowY: 'auto', // josh HERE
         }}>
             <InfiniteLocationList 
-            allCompressedLocations={allCompressedLocations}
-            noLocationsExist={noLocationsExist}
-            mainMode={false} // set false for modal list
-            createButton={null}
-            generateButton={(locationParentName && locationParentType) ? // parent exists
-                null :
-                <GenerateLocationButton 
-                    closeModal2={() => setChooseLocationModalHidden(true)} // when generate button is in modal, close modal on press
-                    parentMode={true} // for both
-                    parentNameInput={locationParentName}
-                    setParentNameInput={setLocationParentName}
-                    parentTypeInput={locationParentType}
-                    setParentTypeInput={setLocationParentType}
-                    setParentChartedInput={setLocationParentCharted}
-                    setPositionInputLocked={setPositionLocked}
-                    childType={locationType}
-                    childDisordered={'DISORDERED' === locationType}
-                    addToExcludedListLocations={addToExcludedList} // for both
-                    removeFromExcludedListLocations={removeFromExcludedList} // for both
-                    parentType={locationType} // for child
-                    setCurrentChildren={setLocationChildren} // for child
-            />}
-            selectLocation={chooseLocationForRelative}
-            infiniteItemWidth={infiniteItemWidth}
-            loadMoreRef={loadMoreRef}
-            endOflist={endOflist}
-            excludedLocations={excludedListLocations}
+                allCompressedLocations={allCompressedLocations}
+                noLocationsExist={noLocationsExist}
+                mainMode={false} // set false for modal list
+                createButton={null}
+                generateButton={generateRelativeLocationButton}
+                selectLocation={chooseLocationForRelative}
+                infiniteItemWidth={infiniteItemWidth}
+                loadMoreRef={loadMoreRef}
+                endOflist={endOflist}
+                excludedLocations={excludedListLocations}
             />
         </div>
     </div>);

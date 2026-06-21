@@ -16,11 +16,15 @@ export default function SingleAnomalyInput({
     currentInputLocked: boolean,
     viewMode: boolean,
 }) {
-    const [tempInputValue, setTempInputValue] = useState<string | null>(anom ?? '')
+    const [tempInputValue, setTempInputValue] = useState<string | null>(anom ?? '') // decalre hooks at top
 
     useEffect(() => {
         setTempInputValue(anom ?? '')
     }, [anom])
+
+    if (viewMode && (anom === null || anom === '')) {
+        return <></> // josh need to fix spacing still
+    }
 
     const actualInputValue:string|null = (tempInputValue !== '') ? tempInputValue : (anom ?? '')
 

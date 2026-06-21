@@ -25,9 +25,13 @@ export default function ViewLocationModalContent({
    setChooseLocationModalHidden,
    setSecondaryModalParentMode,
    newParentName,
+   setNewParentName,
    newParentType,
+   setNewParentType,
    newChildName,
+   setNewChildName,
    newChildType,
+   setNewChildType,
    addToExcludedListLocations,
    removeFromExcludedListLocations,
    setLocationId,
@@ -125,9 +129,13 @@ export default function ViewLocationModalContent({
    setChooseLocationModalHidden: (chooseLocationModalHidden: boolean) => void,
    setSecondaryModalParentMode: (parentMode: boolean | null) => void,
    newParentName: string | null,
+   setNewParentName: React.Dispatch<React.SetStateAction<string | null>>,
    newParentType: string | null,
+   setNewParentType: React.Dispatch<React.SetStateAction<string | null>>,
    newChildName: string | null,
+   setNewChildName: React.Dispatch<React.SetStateAction<string | null>>,
    newChildType: string | null,
+   setNewChildType: React.Dispatch<React.SetStateAction<string | null>>,
    addToExcludedListLocations: (name: string, type: string) => void,
    removeFromExcludedListLocations: (name: string, type: string) => void,
    setLocationId: React.Dispatch<React.SetStateAction<string | null>>,
@@ -213,10 +221,12 @@ export default function ViewLocationModalContent({
    // endOfList: boolean,
    setRefreshOnCloseModal: React.Dispatch<React.SetStateAction<boolean>>,
 }) {
-   // josh logging isMobile
+   // josh isMobile
    useEffect(() => {
-      console.log('isMobile (might adjust range):', isMobile) 
-    }, [isMobile])
+      if (isMobile) {
+         console.log ('mobile mode')
+      }
+   }, [isMobile])
 
    const [loadingLocation, setLoadingLocation] = useState(false) // loading location state
 
@@ -333,8 +343,7 @@ export default function ViewLocationModalContent({
       display: 'flex',
       flexDirection: 'column',
       justifyContent: 'flex-start',
-      // minHeight: '40vh',
-      // minWidth: '610px', // 610 keeps the locks from overlapping, and looks nice
+      minHeight: '40vh',
     }}>
       {/* VIEWING/EDITING/CREATING */}
       {(loadingLocation || (viewMode && !locationName)) ? 
@@ -494,7 +503,9 @@ export default function ViewLocationModalContent({
                         resetLocationFilters={resetLocationFilters}
                         setChooseLocationModalParentMode={setSecondaryModalParentMode}
                         newParentName={newParentName}
+                        setNewParentName={setNewParentName}
                         newParentType={newParentType}
+                        setNewParentType={setNewParentType}
                         viewMode={viewMode}
                         // createMode={createMode}
                         selectNewLocationForViewing={selectNewLocationForViewing}
@@ -526,7 +537,9 @@ export default function ViewLocationModalContent({
                         resetLocationFilters={resetLocationFilters}
                         setChooseLocationModalParentMode={setSecondaryModalParentMode}
                         newChildName={newChildName}
+                        setNewChildName={setNewChildName}
                         newChildType={newChildType}
+                        setNewChildType={setNewChildType}
                         viewMode={viewMode}
                         // createMode={createMode}
                         selectNewLocationForViewing={selectNewLocationForViewing}

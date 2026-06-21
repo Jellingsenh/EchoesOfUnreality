@@ -1,5 +1,5 @@
-import OutlinedDiv from "../../../../components/helpers/OutlinedDiv";
-import LockInputButton from "../../../../components/helpers/LockInputButton";
+import OutlinedDiv from "../../../../components/OutlinedDiv";
+import LockInputButton from "../../../../components/LockInputButton";
 import { useEffect } from "react";
 import ViewDiscoverRemoveButton from "../LocationButtons/ViewDiscoverRemoveButton";
 import { setFirstLetterUpperCase } from "../../../../components/helpers/TextHelpers";
@@ -15,7 +15,9 @@ export default function ChildrenSection({
     resetLocationFilters,
     setChooseLocationModalParentMode,
     newChildName,
+    setNewChildName,
     newChildType,
+    setNewChildType,
     viewMode,
     // createMode,
     selectNewLocationForViewing,
@@ -34,7 +36,9 @@ export default function ChildrenSection({
     resetLocationFilters: () => void,
     setChooseLocationModalParentMode: (parentMode: boolean | null) => void,
     newChildName: string | null,
+    setNewChildName: React.Dispatch<React.SetStateAction<string | null>>,
     newChildType: string | null,
+    setNewChildType: React.Dispatch<React.SetStateAction<string | null>>,
     viewMode: boolean,
     // createMode: boolean,
     selectNewLocationForViewing: (location: { name: string; type: string; }) => void,
@@ -52,16 +56,23 @@ export default function ChildrenSection({
     }
 
     useEffect(() => { // called on ^ modal close
+        // console.log('updating child to: ' + newChildName + ', ' + newChildType)
         if (newChildName && newChildType) {
             addToExcludedListLocations(newChildName, newChildType)
 
             setCurrentChildren(prevItems => [...(prevItems || []), {
                 name: newChildName,
                 type: newChildType,
-                charted: false,
+                charted: true, // chosen children will always be charted
             }])
         }
     }, [newChildName, newChildType])
+
+    const anyChildrenPresent = (currentChildren && currentChildren.length > 0)
+
+    if (viewMode && !anyChildrenPresent) {
+        return <></> // josh need to fix spacing still
+    }
 
     function viewChild(child: { name: string, type: string; charted: boolean }) {
         if (!child.charted) return // only view charted locations
@@ -77,18 +88,23 @@ export default function ChildrenSection({
         discoverNewLocation(child, currentLoc, setRefreshOnCloseModal)
     }
 
-    function removeChild(child: { name: string, type: string; charted: boolean }) {
+    function removeChild(child: { name: string, type: string; charted: boolean }) { 
+        // console.log('removing child location: ' + child.name + ', ' + child.type)
         removeFromExcludedListLocations(child.name, child.type)
         setCurrentChildren(prevItems => {
             if (!prevItems) return prevItems
             return prevItems.filter(item => item !== child)
         })
+        setNewChildName(null)
+        setNewChildType(null)
     }
 
     function setChildCharted(child: { name: string, type: string;} ) {
+        // console.log('setting child charted:', child)
         setCurrentChildren(prev => prev?.map(ch => (ch.name === child.name && ch.type === child.type) ? 
             {...ch, charted: true} : 
-            ch) ?? null)
+            ch
+        ) ?? null)
     }
 
     return <div style={{
@@ -96,6 +112,7 @@ export default function ChildrenSection({
         flexDirection: 'row',
         gap: '10px',
     }}>
+        {/* {newChildName} */}
         {!viewMode && <div style={{
             marginTop: '20px',
         }}>
@@ -130,21 +147,15 @@ export default function ChildrenSection({
                     {/* map children */}
                     {currentChildren?.map((child, index) => (
                     <div key={index} style={{
-                        // border:'1px solid grey',
                         display: 'flex',
                         flexDirection: 'row',
                         gap: '5px',
                         justifyContent: 'center',
-                        // alignItems: 'center',
                         marginTop: '-5px',
-                        // marginBottom: '5px',
                         width: '100%',
-                        // overflowX: 'auto',
                         overflowY: 'hidden',
                     }}>
                         <div style={{
-                            // marginTop: '-5px',
-                            // marginLeft: '5px',
                             minWidth: 'max-content',
                         }}>
                             <OutlinedDiv locked={true} 
@@ -157,23 +168,18 @@ export default function ChildrenSection({
                                 </div>
                             </OutlinedDiv>
                         </div>
-                        <div style={{
-                            // marginTop: '-5px',
-                            // marginRight: '5px',
-                            // paddingRight: '5px',
-                        }}>
-                            <OutlinedDiv locked={true} 
-                                label="Type">
-                                <div style={{
-                                    minWidth: 40, // keep label visible
-                                    textAlign: 'center',
-                                }}>
-                                    {setFirstLetterUpperCase(child.type)}
-                                </div>
-                            </OutlinedDiv>
-                        </div>
+                        <OutlinedDiv locked={true} 
+                            label="Type">
+                            <div style={{
+                                minWidth: 40, // keep label visible
+                                textAlign: 'center',
+                            }}>
+                                {setFirstLetterUpperCase(child.type)}
+                            </div>
+                        </OutlinedDiv>
                         <div style={{
                             marginLeft: '5px',
+                            marginBottom: '-5px',
                             alignSelf: 'center',
                         }}>
                             <ViewDiscoverRemoveButton 
@@ -188,28 +194,29 @@ export default function ChildrenSection({
                         </div>
                     </div>))}
                 </div>
+                {/* NO CHILDREN SECTION & BUTTONS */}
                 <div style={{
                     display: 'flex',
                     flexDirection: 'row',
-                    justifyContent: (currentChildren && currentChildren.length > 0) ? 'center' : 'left',
+                    justifyContent: anyChildrenPresent ? 'center' : 'left',
                     gap: '5px',
                     // overflowX: 'auto',
                     // marginTop: '5px',
                     marginLeft: '5px',
-                    // marginLeft: (currentChildren && currentChildren.length > 0) ? '10%' : '0px',
                 }}>
                     <div style={{
                         minWidth: 'max-content',
                         // overflowX: 'auto',
                         // marginLeft: '5px',
-                        marginBottom: (currentChildren && currentChildren.length > 0) ? '5px' : '0px',
+                        marginBottom: anyChildrenPresent ? '5px' : '0px',
                     }}>
-                        {((currentChildren && currentChildren.length > 0) ? '' : 'No children found.  ')}
+                        {(anyChildrenPresent ? '' : 'No children found.  ')}
                     </div>
                     {!viewMode && !currentInputLocked && <div style={{
                         display: 'flex',
                         gap: '5px',
-                        marginTop: (currentChildren && currentChildren.length > 0) ? '10px' : '0px',
+                        marginTop: anyChildrenPresent ? '10px' : '0px',
+                        marginLeft: '5px',
                     }}>
                         <button style={{
                             minWidth: 'max-content',

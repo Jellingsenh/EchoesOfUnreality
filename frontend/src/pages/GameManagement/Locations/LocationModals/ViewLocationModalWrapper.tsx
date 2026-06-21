@@ -1,5 +1,5 @@
 import { useState } from "react";
-import LocationModal from "./LocationModal";
+import LocationModal from "./ViewLocationModal";
 import ViewLocationModalContent from "./ViewLocationModalContent";
 import DeleteLocationButton from "../LocationButtons/DeleteLocationButton";
 import ViewInMapButton from "../LocationButtons/ViewInMapButton";
@@ -13,8 +13,7 @@ import randomizeLocationInAPI from "../LocationsNetworking/randomizeLocationInAP
 import deleteLocationInAPI from "../LocationsNetworking/deleteLocationInAPI";
 import editLocationInAPI from "../LocationsNetworking/editLocationInAPI";
 
-
-export default function LocationModal1 ({
+export default function ViewLocationModalWrapper ({
     isMobile,
     isModalHidden,
     setModalHidden,
@@ -121,6 +120,8 @@ export default function LocationModal1 ({
     const [locationAnomalies, setLocationAnomalies] = useState<string[] | null>([])
     const [locationSummary, setLocationSummary] = useState<string | null>(null)
     const [locationImage, setLocationImage] = useState<string | null>(null)
+    // location snapshot (for detecting unsaved changes)
+    const [snapshotLocation, setSnapshotLocation] = useState<FullLocation | null>(null)
     // locked variables
     const [sizeLocked, setSizeLocked] = useState(false)
     const [modifierLocked, setModifierLocked] = useState(false)
@@ -135,43 +136,51 @@ export default function LocationModal1 ({
     // HELPERS
 
     const jsonBody:FullLocation = {
-    "_id": locationId,
-    "name": locationName,
-    "type": locationType,
-    "size": locationSize,
-    "modifier": 'NONE' === locationModifier ? null : locationModifier,
-    "appearance": locationAppearance,
-    "nature": {
-        "breathable": locationNatureBreathable,
-        "gravity": locationNatureGravity,
-        "environments": locationNatureEnvironments,
-        "materials": locationNatureMaterials,
-    },
-    "society": {
-        "history": locationSocietyHistory,
-        "religion": locationSocietyReligion,
-        "technology": locationSocietyTechnology,
-        "culture": locationSocietyCulture,
-        "government": locationSocietyGovernment,
-        "economy": locationSocietyEconomy,
-        "secrets": locationSocietySecrets,
-        "allies": locationSocietyAllies,
-        "enemies": locationSocietyEnemies,
-    },
-    "parent": locationParentName && locationParentType ? {
-        "name": locationParentName,
-        "type": locationParentType
-    } : null,
-    "position": (locationPositionX != null && locationPositionY != null) ? [ 
-        locationPositionX,locationPositionY
-    ] : null,
-    "children": locationChildren,
-    "anomalies": locationAnomalies,
-    "summary": locationSummary,
-    "image": locationImage,
+        "_id": locationId,
+        "name": locationName,
+        "type": locationType,
+        "size": locationSize,
+        "modifier": 'NONE' === locationModifier ? null : locationModifier,
+        "appearance": locationAppearance,
+        "nature": {
+            "breathable": locationNatureBreathable,
+            "gravity": locationNatureGravity,
+            "environments": locationNatureEnvironments,
+            "materials": locationNatureMaterials,
+        },
+        "society": {
+            "history": locationSocietyHistory,
+            "religion": locationSocietyReligion,
+            "technology": locationSocietyTechnology,
+            "culture": locationSocietyCulture,
+            "government": locationSocietyGovernment,
+            "economy": locationSocietyEconomy,
+            "secrets": locationSocietySecrets,
+            "allies": locationSocietyAllies,
+            "enemies": locationSocietyEnemies,
+        },
+        "parent": locationParentName && locationParentType ? {
+            "name": locationParentName,
+            "type": locationParentType
+        } : null,
+        "position": (locationPositionX != null && locationPositionY != null) ? [ 
+            locationPositionX,locationPositionY
+        ] : null,
+        "children": locationChildren,
+        "anomalies": locationAnomalies,
+        "summary": locationSummary,
+        "image": locationImage,
     }
 
     const modalOnClose = () => {
+        // warning about unsaved changes
+        if ((('CREATE' === editMode) && isAnyDataPresent())
+        || (('EDIT' === editMode) && isAnyDataChanged())) {
+            if (!confirm('You have unsaved changes. Press OK to abandon them.\n\nPress Cancel and use the Save location button to save your changes.')) {
+                // console.log('Keeping modal open...')
+                return;
+            }
+        }
         // console.log('Closing modal...')
         setModalHidden(true)
         setNewParentName(null)
@@ -257,44 +266,6 @@ export default function LocationModal1 ({
         setSummaryLocked(false)
     }
 
-    function selectNewLocationForViewing(location: {name: string, type: string}) {
-        // console.log('selected new location for viewing: ' + location.name + ', ' + location.type)
-    
-        setNewParentName(null)
-        setNewParentType(null)
-        setNewChildName(null)
-        setNewChildType(null)
-    
-        setExcludedListLocations([location])
-    
-        unlockAllInputs()
-        setNameLocked(true)
-        setTypeLocked(true)
-        // resetLocationFilters() // only reset on 2nd modal open and close
-        
-        // setLocationName(null)
-        // setLocationId(null)
-    
-        setEditMode('VIEW')
-    
-        setCurrentCompressedLocation(location)
-    }
-
-    function allInputsUnlocked() {
-        return !nameLocked 
-            && !typeLocked 
-            && !sizeLocked 
-            && !modifierLocked 
-            && !appearanceLocked 
-            && !natureLocked 
-            && !societyLocked 
-            && !parentLocked 
-            && !positionLocked 
-            && !childrenLocked 
-            && !anomaliesLocked 
-            && !summaryLocked
-    }
-
     function lockAllInputs() {
         setNameLocked(true)
         setTypeLocked(true)
@@ -308,6 +279,102 @@ export default function LocationModal1 ({
         setChildrenLocked(true)
         setAnomaliesLocked(true)
         setSummaryLocked(true)
+    }
+
+    function selectNewLocationForViewing(location: {name: string, type: string}) {
+        // console.log('selected new location for viewing: ' + location.name + ', ' + location.type)
+    
+        setNewParentName(null)
+        setNewParentType(null)
+        setNewChildName(null)
+        setNewChildType(null)
+    
+        setExcludedListLocations([location])
+    
+        unlockAllInputs()
+        setNameLocked(true)
+        setTypeLocked(true)
+
+        // resetLocationFilters() // only reset on 2nd modal open and close
+        resetAllModalFields()
+        setEditMode('VIEW')
+        setCurrentCompressedLocation(location)
+    }
+
+        function isAnyDataPresent() {
+        // console.log('checking if any data is present...')
+        return ((locationName && locationName.length > 0)
+            || (locationType && ('PLACE' !== locationType))
+            || (locationSize && ('STANDARD' !== locationSize))
+            || (locationModifier && 'NONE' !== locationModifier)
+            || (locationAppearance && locationAppearance.length > 0)
+            || locationNatureBreathable 
+            || locationNatureGravity 
+            || (locationNatureEnvironments && locationNatureEnvironments.length > 0)
+            || (locationNatureMaterials && locationNatureMaterials.length > 0)
+            || (locationSocietyHistory && locationSocietyHistory.length > 0)
+            || (locationSocietyReligion && locationSocietyReligion.length > 0)
+            || (locationSocietyTechnology && locationSocietyTechnology.length > 0)
+            || (locationSocietyCulture && locationSocietyCulture.length > 0)
+            || (locationSocietyGovernment && locationSocietyGovernment.length > 0)
+            || (locationSocietyEconomy && locationSocietyEconomy.length > 0)
+            || (locationSocietySecrets && locationSocietySecrets.length > 0)
+            || (locationSocietyAllies && locationSocietyAllies.length > 0)
+            || (locationSocietyEnemies && locationSocietyEnemies.length > 0)
+            || locationParentName
+            || locationParentType
+            || (locationParentName && locationPositionX && locationPositionY)
+            || (locationChildren && locationChildren.length > 0) 
+            || (locationAnomalies && locationAnomalies.length > 0) 
+            || (locationSummary && locationSummary.length > 0)
+            || locationImage)
+    }
+
+    function isAnyDataChanged() {
+        if (snapshotLocation == null) return false // no snapshot, so no changes
+        console.log('testing location snapshot...')
+        console.log('snapshot:')
+        console.log(snapshotLocation)
+        console.log('current:')
+        console.log(jsonBody)
+        return (!equalsIfNullAndEmptyStrAreEqual(jsonBody.name, snapshotLocation.name)
+            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.type, snapshotLocation.type)
+            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.size, snapshotLocation.size)
+            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.modifier, snapshotLocation.modifier)
+            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.appearance, snapshotLocation.appearance)
+            || jsonBody.nature?.breathable !== snapshotLocation.nature?.breathable
+            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.nature?.gravity, snapshotLocation.nature?.gravity)
+            || JSON.stringify(jsonBody.nature?.environments) !== JSON.stringify(snapshotLocation.nature?.environments)
+            || JSON.stringify(jsonBody.nature?.materials) !== JSON.stringify(snapshotLocation.nature?.materials)
+            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.society?.history, snapshotLocation.society?.history)
+            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.society?.religion, snapshotLocation.society?.religion)
+            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.society?.technology, snapshotLocation.society?.technology)
+            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.society?.culture, snapshotLocation.society?.culture)
+            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.society?.government, snapshotLocation.society?.government)
+            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.society?.economy, snapshotLocation.society?.economy)
+            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.society?.secrets, snapshotLocation.society?.secrets)
+            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.society?.allies, snapshotLocation.society?.allies)
+            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.society?.enemies, snapshotLocation.society?.enemies)
+            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.parent?.name, snapshotLocation.parent?.name)
+            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.parent?.type, snapshotLocation.parent?.type)
+            // || jsonBody.parent?.charted !== snapshotLocation.parent?.charted
+            || JSON.stringify(jsonBody.position) !== JSON.stringify(snapshotLocation.position)
+            || JSON.stringify(jsonBody.children) !== JSON.stringify(snapshotLocation.children)
+            || JSON.stringify(jsonBody.anomalies) !== JSON.stringify(snapshotLocation.anomalies)
+            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.summary, snapshotLocation.summary)
+            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.image, snapshotLocation.image))
+    }
+
+    function equalsIfNullAndEmptyStrAreEqual(str1: string | null | undefined, str2: string | null | undefined) {
+        const normalizedStr1 = (str1 === null || str1 === undefined) ? '' : str1
+        const normalizedStr2 = (str2 === null || str2 === undefined) ? '' : str2
+        return normalizedStr1 === normalizedStr2
+    }
+
+    function takeLocationSnapshot() {
+        console.log('taking location snapshot...')
+        console.log(jsonBody)
+        setSnapshotLocation(jsonBody)
     }
 
     function resetAllModalFields() {
@@ -366,9 +433,13 @@ export default function LocationModal1 ({
         setChooseLocationModalHidden={setChooseLocationModalHidden}
         setSecondaryModalParentMode={setSecondaryModalParentMode}
         newParentName={newParentName}
+        setNewParentName={setNewParentName}
         newParentType={newParentType}
+        setNewParentType={setNewParentType}
         newChildName={newChildName}
+        setNewChildName={setNewChildName}
         newChildType={newChildType}
+        setNewChildType={setNewChildType}
         addToExcludedListLocations={addToExcludedList}
         removeFromExcludedListLocations={removeFromExcludedList}
         setLocationId={setLocationId}
@@ -501,7 +572,7 @@ export default function LocationModal1 ({
         }}/>
         {/* LOCK/UNLOCK ALL */}
         <LockUnlockAllButton 
-            allInputsUnlocked={allInputsUnlocked}
+            allInputsUnlocked={lockedListLength === 0}
             unlockAllInputs={unlockAllInputs}
             lockAllInputs={lockAllInputs}
             viewMode={editMode === 'VIEW'}
@@ -509,6 +580,8 @@ export default function LocationModal1 ({
         {/* RANDOMIZE UNLOCKED */}
         <RandomizeUnlockedButton 
             viewMode={editMode === 'VIEW'}
+            allFieldsUnlocked={lockedListLength === 0}
+            allFieldsLocked={lockedListLength === 12}
             randomizeUnlockedFields={() => randomizeLocationInAPI(
                 jsonBody,
                 lockedListStr,
@@ -529,6 +602,7 @@ export default function LocationModal1 ({
             locationName={locationName}
             // currentLocationName={locationName ?? 'location'}
             setEditMode={setEditMode}
+            takeLocationSnapshot={takeLocationSnapshot}
             saveLocationToDB={() => saveLocationToAPI(
                 jsonBody,
                 locationName ?? 'location',

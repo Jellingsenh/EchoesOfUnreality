@@ -18,6 +18,7 @@ export default function LocationListItem({
         padding: '5px 0px',
     }} 
     onClick={() => {
+        // console.log('selecting location:', location.name)
         selectLocation(location)
     }}>
         <div style={{ 

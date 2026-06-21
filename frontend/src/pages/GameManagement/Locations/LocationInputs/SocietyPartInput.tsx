@@ -24,6 +24,10 @@ export default function SocietyPartInput({
         setTempInputValue(currentInput ?? '')
     }, [currentInput])
 
+    if (viewMode && (currentInput === null || currentInput === '')) {
+        return <></> // josh need to fix spacing still
+    }
+
     const actualInputValue:string|null = (tempInputValue !== '') ? tempInputValue : (currentInput ?? '')
     
     return  <TextField 
@@ -50,7 +54,7 @@ export default function SocietyPartInput({
         // defaultValue={createMode ? null : currentInput}
         value={actualInputValue ?? ''}
         onBlur={() => { // Triggers when user clicks outside the textfield
-            setCurrentInput(actualInputValue ?? '')
+            setCurrentInput(actualInputValue)
         }} 
         onChange={(input) => {
             if (input.target.value === '') {

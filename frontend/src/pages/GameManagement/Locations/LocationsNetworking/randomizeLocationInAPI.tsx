@@ -9,7 +9,7 @@ export default function randomizeUnlockedFields(
     updateFieldsWithRandomizedResult: (result: any) => void,
 ) {
     if (lockedListLength == 12) {
-        console.log('All fields are locked. Cannot randomize.')
+        // console.log('All fields are locked. Cannot randomize.')
         return
     }
 

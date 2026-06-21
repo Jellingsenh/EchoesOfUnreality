@@ -1,6 +1,6 @@
 import TextField from "@mui/material/TextField";
-import LockInputButton from "../../../../components/helpers/LockInputButton";
-import OutlinedDiv from "../../../../components/helpers/OutlinedDiv";
+import LockInputButton from "../../../../components/LockInputButton";
+import OutlinedDiv from "../../../../components/OutlinedDiv";
 
 export default function PositionOnParentSection({
     currentXInput,

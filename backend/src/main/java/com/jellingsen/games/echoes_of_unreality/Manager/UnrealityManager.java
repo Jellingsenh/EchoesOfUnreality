@@ -621,7 +621,7 @@ public class UnrealityManager {
         } else {
             if (LocationModifier.EXTREME == modifier) {
                 // josh potential llm
-                parentSociety.governemnt = "Extreme " + parentSociety.governemnt;
+                parentSociety.government = "Extreme " + parentSociety.government;
                 parentSociety.religion = "Extreme " + parentSociety.religion;
                 parentSociety.culture = "Extreme " + parentSociety.culture;
                 parentSociety.technology = "Extreme " + parentSociety.technology;
@@ -749,13 +749,11 @@ public class UnrealityManager {
 
     public String linkLocations(Vector<CompressedLocation> parentAndChildren) {
         CompressedLocation parentLoc = parentAndChildren.remove(0); // pop parent
-        System.out.println("  --> Linking "+parentLoc.name+" to "+parentAndChildren.size()+" child(ren) (uncharted locations are ignored)");
+        System.out.println("  --> Linking "+parentLoc.name+" to "+parentAndChildren.size()+" child(ren)");
 
         for (CompressedLocation chLoc : parentAndChildren) {
-            if (!chLoc.charted) {
-                System.out.println("    > Skipping uncharted child location: " + chLoc.name + " (" + chLoc.type + ")");
-            } else {
-                System.out.println("    > Linking child location: " + chLoc.name + " (" + chLoc.type + ")");
+            if (chLoc.charted) {
+                System.out.println("      > Linking child location: " + chLoc.name + " (" + chLoc.type + ")");
             }
         }
 
@@ -774,6 +772,41 @@ public class UnrealityManager {
     
     // DATABASE LOCATION FUNCTIONS //
 
+    private Location updateRelatives(Location locationToLink, boolean deleteMode) {
+        if (locationToLink == null) { return null; }
+        CompressedLocation linkLoc = compressLocation(locationToLink);
+        
+        if (deleteMode) {
+            databaseConnection.unlinkParentFromAllOtherChildren(linkLoc, null);
+            databaseConnection.unlinkChildFromAllOtherParents(linkLoc, null);
+            return null;
+        }
+
+        databaseConnection.unlinkChildFromAllOtherParents(linkLoc, locationToLink.parent);
+        if (locationToLink.parent != null) { // now link to parent passed in
+            // if (!locationToLink.parent.charted) { // if charted, should already be linked
+                locationToLink.parent.charted = databaseConnection.isLocationInCollection(locationToLink.parent.name, locationToLink.parent.type);
+                if (locationToLink.parent.charted) { // only link if parent exists
+                    linkLocations(new Vector<CompressedLocation>(Arrays.asList(locationToLink.parent, linkLoc))); // link to parent if parent already charted
+                }
+            // }
+        }
+        databaseConnection.unlinkParentFromAllOtherChildren(linkLoc, locationToLink.children);
+        if (locationToLink.children != null) { // now link to all passed in
+            for (CompressedLocation chLoc : locationToLink.children) {
+                // if (!chLoc.charted) { // if charted, should already be linked
+                    chLoc.charted = databaseConnection.isLocationInCollection(chLoc.name, chLoc.type); 
+                    if (chLoc.charted) { // only link if child exists
+                        CompressedLocation loc = compressLocation(locationToLink);
+                        databaseConnection.unlinkChildFromAllOtherParents(chLoc, loc);
+                        linkLocations(new Vector<CompressedLocation>(Arrays.asList(loc, chLoc))); // link to child if child already charted
+                    }
+                // }
+            }
+        }
+        return locationToLink;
+    }
+
     public Location saveLocationToDatabase(Location location) {
         if (location == null) {
             System.out.println("Error: Cannot save null location");
@@ -784,26 +817,7 @@ public class UnrealityManager {
             return null;
         }
 
-        if (location.parent != null) {
-            location.parent.charted = databaseConnection.isLocationInCollection(location.parent.name, location.parent.type);
-            if (location.parent.charted) {
-                linkLocations(new Vector<CompressedLocation>(Arrays.asList(location.parent, compressLocation(location)))); // link to parent if parent already charted
-            }
-        }
-        
-        if (location.children != null) {
-            for (CompressedLocation chLoc : location.children) {
-                if (!chLoc.charted) { 
-                    chLoc.charted = databaseConnection.isLocationInCollection(chLoc.name, chLoc.type); 
-                    if (chLoc.charted) {
-                        CompressedLocation loc = compressLocation(location);
-                        databaseConnection.unlinkChildFromAllOtherParents(chLoc, loc);
-                        linkLocations(new Vector<CompressedLocation>(Arrays.asList(loc, chLoc))); // link to child if child already charted
-                    }
-                }
-            }
-        }
-        return databaseConnection.createNewLocationSave(location);
+        return databaseConnection.createNewLocationSave(updateRelatives(location, false));
     }  
 
     public Location editLocationInDatabase(Location location) {
@@ -815,32 +829,12 @@ public class UnrealityManager {
             System.out.println("Error: Cannot edit location with missing or empty name or type");
             return null;
         }
-
-        if (location._id != null && location._id.length() > 0) {
-            if (location.parent != null) {
-                location.parent.charted = databaseConnection.isLocationInCollection(location.parent.name, location.parent.type);
-                if (location.parent.charted) {
-                    linkLocations(new Vector<CompressedLocation>(Arrays.asList(location.parent, compressLocation(location)))); // link to parent if parent already charted
-                }
-            }
-            
-            if (location.children != null) {
-                for (CompressedLocation chLoc : location.children) {
-                    if (!chLoc.charted) { 
-                        chLoc.charted = databaseConnection.isLocationInCollection(chLoc.name, chLoc.type); 
-                        if (chLoc.charted) {
-                            CompressedLocation loc = compressLocation(location);
-                            databaseConnection.unlinkChildFromAllOtherParents(chLoc, loc);
-                            linkLocations(new Vector<CompressedLocation>(Arrays.asList(loc, chLoc))); // link to child if child already charted
-                        }
-                    }
-                }
-            }
-            return databaseConnection.updateLocationSave(location);
-        } else {
+        if (location._id == null || location._id.length() < 1) {
             System.out.println("Error: Cannot edit location that isn't in the database (missing or invalid _id)");
             return null; // can't edit a location that isn't in the database
         }
+
+        return databaseConnection.updateLocationSave(updateRelatives(location, false));
     }
 
     public boolean deleteLocationFromDatabase(Location location) {
@@ -857,18 +851,7 @@ public class UnrealityManager {
             return false;
         }
 
-        if (location.parent != null) {
-            if (location.parent.charted) {
-                databaseConnection.unlinkParentFromDeletedChild(location.parent, compressLocation(location));
-            }
-        }
-        if (location.children != null) {
-            for (CompressedLocation chLoc : location.children) {
-                if (chLoc.charted) { 
-                    databaseConnection.unlinkChildFromDeletedParent(chLoc);
-                }
-            }
-        }
+        updateRelatives(location, true);
         return databaseConnection.deleteLocationSave(location._id, location.name);
     }
 
@@ -1117,7 +1100,7 @@ public class UnrealityManager {
 
     // CLEAR DATABASES //
 
-    public void clearDatabase() { // josh !!!!!!!! BE CAREFUL WITH THIS, IT WILL DELETE ALL DATA IN THE DATABASES, FOR TESTING ONLY
+    public void clearDatabase() { // !!!!!!!! BE CAREFUL WITH THIS, IT WILL DELETE ALL DATA IN THE DATABASES, FOR TESTING ONLY
         databaseConnection.clearAllCollections();
     }
 }

@@ -20,6 +20,10 @@ export default function SingleEnvironmentInput({
         setTempInputValue(env ?? '')
     }, [env])
 
+    if (viewMode && (env === null || env === '')) {
+        return <></> // josh need to fix spacing still
+    }
+
     const actualInputValue:string|null = (tempInputValue !== '') ? tempInputValue : (env ?? '')
 
     return <div style={{

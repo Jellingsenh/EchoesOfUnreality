@@ -1,5 +1,5 @@
-import OutlinedDiv from "../../../../components/helpers/OutlinedDiv";
-import LockInputButton from "../../../../components/helpers/LockInputButton";
+import OutlinedDiv from "../../../../components/OutlinedDiv";
+import LockInputButton from "../../../../components/LockInputButton";
 import SingleAnomalyInput from "./SingleAnomalyInput";
 
 export default function LocationAnomalyInput({
@@ -14,7 +14,11 @@ export default function LocationAnomalyInput({
     currentInputLocked: boolean,
     setCurrentInputLocked: React.Dispatch<React.SetStateAction<boolean>>,
     viewMode: boolean,
-}) {
+}) { 
+    if (viewMode && (currentInput === null || currentInput.length === 0 || currentInput.every(item => item.trim() === ''))) {
+        return <></> // josh need to fix spacing still
+    }
+
     // console.log('rendering anomaly input with current input: ', currentInput)
     function setAnomaly(newAnomaly: string, index: number) {
         setCurrentInput(prevAnoms => {

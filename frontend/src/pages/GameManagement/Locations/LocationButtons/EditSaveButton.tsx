@@ -4,6 +4,7 @@ export default function EditSaveButton({
     locationName,
     // currentLocationName,
     setEditMode,
+    takeLocationSnapshot,
     saveLocationToDB,
     editLocationInDB,
 }:{
@@ -12,6 +13,7 @@ export default function EditSaveButton({
     locationName: string | null,
     // currentLocationName: string | null,
     setEditMode: (mode: 'VIEW' | 'EDIT' | 'CREATE') => void,
+    takeLocationSnapshot: () => void,
     saveLocationToDB: () => void,
     editLocationInDB: () => void,
 }) {
@@ -27,6 +29,7 @@ export default function EditSaveButton({
     onClick={() => {
         if (viewMode) {
             setEditMode('EDIT')
+            takeLocationSnapshot()
         } else {
             if (createMode) {
                 saveLocationToDB()

@@ -1,7 +1,7 @@
 import BreathableDropdown from "../LocationDropdowns/BreathableDropdown"
 import GravityDropdown from "../LocationDropdowns/GravityDropdown"
-import OutlinedDiv from "../../../../components/helpers/OutlinedDiv"
-import LockInputButton from "../../../../components/helpers/LockInputButton"
+import OutlinedDiv from "../../../../components/OutlinedDiv"
+import LockInputButton from "../../../../components/LockInputButton"
 import MaterialsInput from "../LocationInputs/MaterialsInput"
 import EnvironmentsInput from "../LocationInputs/EnvironmentsInput"
 
@@ -32,6 +32,15 @@ export default function NatureSection({
     viewMode: boolean,
     // createMode: boolean,
 }) {
+    const anyNatureInputsPresent = (currentBreathableInput 
+        || currentGravityInput 
+        || currentEnvironmentInput 
+        || currentMaterialInput)
+
+    if (viewMode && !anyNatureInputsPresent) {
+        return <></> // josh need to fix spacing still
+    }
+
     return <div style={{
         display: 'flex',
         flexDirection: 'row',
@@ -53,10 +62,7 @@ export default function NatureSection({
                 label={'Nature'}
                 locked={currentInputLocked || viewMode}
             >
-                {(currentBreathableInput 
-                || currentGravityInput 
-                || currentEnvironmentInput 
-                || currentMaterialInput) ? 
+                {anyNatureInputsPresent ? 
                 < div style={{
                     // border:'1px solid orange',
                     flexDirection: 'column',
@@ -104,8 +110,9 @@ export default function NatureSection({
                     {(!currentMaterialInput || currentMaterialInput.length < 1) 
                     && (!currentEnvironmentInput || currentEnvironmentInput.length < 1) 
                     && (!currentGravityInput || currentGravityInput === 'NONE') 
-                    && !currentBreathableInput
-                    && <button style={{
+                    && (!currentBreathableInput || currentGravityInput === 'BREATHABLE')
+                    && !viewMode &&
+                    <button style={{
                         alignSelf: 'center',
                         marginTop: '10px',
                         marginBottom: '-5px',
@@ -134,7 +141,7 @@ export default function NatureSection({
                     </div>
                     {!viewMode && !currentInputLocked && <button style={{
                         // border:'1px solid red', 
-                        // marginLeft: '10px',
+                        marginLeft: '5px',
                         // marginBottom: '5px',
                         minWidth: 'max-content',
                     }}
@@ -144,7 +151,7 @@ export default function NatureSection({
                         setCurrentEnvironmentInput([''])
                         setCurrentMaterialInput([''])
                     }}>
-                        {'Add Nature'}
+                        {'Add nature'}
                     </button>}
                 </div>}
             </OutlinedDiv>

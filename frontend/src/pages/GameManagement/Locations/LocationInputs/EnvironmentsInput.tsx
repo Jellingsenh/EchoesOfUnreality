@@ -1,4 +1,4 @@
-import OutlinedDiv from "../../../../components/helpers/OutlinedDiv"
+import OutlinedDiv from "../../../../components/OutlinedDiv"
 import SingleEnvironmentInput from "./SingleEnvironmentInput"
 
 export default function EnvironmentsInput({
@@ -14,6 +14,10 @@ export default function EnvironmentsInput({
     // setCurrentInputLocked: React.Dispatch<React.SetStateAction<boolean>>,
     viewMode: boolean,
 }) {
+    if (viewMode && (currentInput === null || currentInput.length === 0 || currentInput.every(item => item.trim() === ''))) {
+        return <></> // josh need to fix spacing still
+    }
+    
     return <OutlinedDiv 
         label={'Environments'}
         locked={currentInputLocked || viewMode}
