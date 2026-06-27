@@ -27,6 +27,8 @@ npm install @mui/icons-material @mui/material @emotion/react @emotion/styled
 <br>
 npm install mui-tiptap
 <br>
+npm install browser-image-compression
+<br>
 
 Create React Typescript project with Vite (npm create vite@latest frontend -- --template react-ts)
 <br>

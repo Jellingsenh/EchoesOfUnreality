@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { baseApiUrl } from "../../../../../resources/constants";
+import { baseApiUrl } from "../../../../resources/constants";
 
 export default function getInitialLocationsFromAPI(
     searchStr: string | null,

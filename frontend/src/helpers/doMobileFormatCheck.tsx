@@ -6,7 +6,7 @@ export default function doMobileFormatCheck(
 ) {
     useEffect(() => {
         // Define the media query string
-        const mediaQuery = window.matchMedia('(max-width: 360px)');
+        const mediaQuery = window.matchMedia('(max-width: 400px)');
 
         // Handler function to update state
         const handleMediaQueryChange = (event: any) => {

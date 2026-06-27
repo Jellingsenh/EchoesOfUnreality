@@ -2,9 +2,9 @@ import OutlinedDiv from "../../../../components/OutlinedDiv";
 import LockInputButton from "../../../../components/LockInputButton";
 import { useEffect } from "react";
 import ViewDiscoverRemoveButton from "../LocationButtons/ViewDiscoverRemoveButton";
-import { setFirstLetterUpperCase } from "../../../../components/helpers/TextHelpers";
 import { discoverNewLocation } from "../LocationsHelpers/discoverNewLocation";
 import GenerateLocationButton from "../LocationButtons/GenerateLocationButton";
+import { setFirstLetterUpperCase } from "../../../../helpers/textHelpers";
 
 export default function ParentSection({
     currentParentNameInput,
@@ -34,6 +34,7 @@ export default function ParentSection({
     childDisordered,
     // endOfList,
     setRefreshOnCloseModal,
+    triggerAlertBanner,
 }:{
     currentParentNameInput: string | null,
     setCurrentParentNameInput: React.Dispatch<React.SetStateAction<string | null>>,
@@ -62,6 +63,7 @@ export default function ParentSection({
     childDisordered: boolean,
     // endOfList: boolean,
     setRefreshOnCloseModal: React.Dispatch<React.SetStateAction<boolean>>,
+    triggerAlertBanner: (content:string, type:'success'|'warning'|'error') => void,
 }) {
     function chooseNewParent() {
         setChooseLocationModalParentMode(true)
@@ -88,7 +90,7 @@ export default function ParentSection({
         || (newParentName && newParentType))
 
     if (viewMode && !anyParentPresent) {
-        return <></> // josh need to fix spacing still
+        return <></> // 
     }
 
     function viewParent(parent: { name: string, type: string; charted: boolean }) {
@@ -102,7 +104,7 @@ export default function ParentSection({
             name: childName,
             type: childType,
         }
-        discoverNewLocation(parent,currentLoc, setRefreshOnCloseModal)
+        discoverNewLocation(parent,currentLoc, setRefreshOnCloseModal, triggerAlertBanner)
     }
 
     function removeParent() {
@@ -206,7 +208,7 @@ export default function ParentSection({
                             justifyContent: 'center',
                             // border:'1px solid red',
                             marginLeft: '10px',
-                            marginTop: '5px',
+                            marginTop: '3px',
                             marginBottom: '-5px',
                             // transform: 'translateX(-25%)',
                             // overflowX: 'auto',
@@ -215,6 +217,7 @@ export default function ParentSection({
                             <button style={{
                                 // alignSelf: 'center',
                                 minWidth: 'max-content',
+                                cursor: 'pointer',
                             }} 
                             onClick={() => {
                                 chooseNewParent()
@@ -262,6 +265,7 @@ export default function ParentSection({
                             // marginBottom: '5px',
                             marginLeft: '5px',
                             minWidth: 'max-content',
+                            cursor: 'pointer',
                         }}
                         onClick={() => {
                             chooseNewParent()

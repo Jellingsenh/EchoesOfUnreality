@@ -1,11 +1,11 @@
-import { baseApiUrl } from "../../../../../resources/constants";
+import { baseApiUrl } from "../../../../resources/constants";
 import type { FullLocation } from "../LocationTypes/FullLocation";
 
 export default function deleteLocationInAPI(
     jsonBody: FullLocation,
     locationName: string,
-    modalOnClose: () => void,
-    refreshLocations: () => void,
+    modalOnClose: (forceRefreshOnClose:boolean) => void,
+    triggerAlertBanner: (content:string, type:'success'|'warning'|'error') => void,
 ) {
     if (!jsonBody._id) {
         console.error('No location id found for editing. Cannot delete.')
@@ -30,23 +30,21 @@ export default function deleteLocationInAPI(
             signal, // Attach the signal to the fetch request
             },);
             const result = await res.json();
+            if (res.status != 200) {
+                triggerAlertBanner('Error deleting ' + locationName + '.', 'error')
+                return
+            }
             if (result) {
-                console.log('Successfully deleted ' + locationName)
-                // setEditMode('VIEW') 
-                // setRefreshOnCloseModal(true)
-                modalOnClose()
-                refreshLocations()
-            } else {
-                // josh add banner for error?
-                console.error('Res error deleting data:', res.statusText);
-            } 
+                modalOnClose(true)
+                triggerAlertBanner('Successfully deleted ' + locationName + '.', 'success')
+            }
         } catch (error: any) {
             if (error.name === 'AbortError') {
             // console.log('Request was canceled intentionally.');
             return; // Gracefully exit
             }
-            // setEditMode('EDIT') 
-            console.error('Error posting data:', error);
+            triggerAlertBanner('Error deleting ' + locationName + '.', 'error')
+            console.error(error);
         } finally {
             // clearTimeout(timeoutId);
         }

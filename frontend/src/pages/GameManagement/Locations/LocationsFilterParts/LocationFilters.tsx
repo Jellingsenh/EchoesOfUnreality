@@ -48,7 +48,6 @@ export default function LocationFilters({
         <LocationSearch 
             searchStr={searchStr}
             setSearchStr={setSearchStr}
-            typeFilter={typeFilter}
         />
     </div>
 }

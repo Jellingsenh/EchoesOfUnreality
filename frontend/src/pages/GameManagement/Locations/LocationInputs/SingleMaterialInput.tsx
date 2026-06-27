@@ -21,7 +21,7 @@ export default function SingleMaterialInput({
     }, [mat])
 
     if (viewMode && (mat === null || mat === '')) {
-        return <></> // josh need to fix spacing still
+        return <></> // 
     }
 
     const actualInputValue:string|null = (tempInputValue !== '') ? tempInputValue : (mat ?? '')
@@ -77,6 +77,7 @@ export default function SingleMaterialInput({
         />
         {!viewMode && !currentInputLocked && <button style={{
             alignSelf: 'center',
+            cursor: 'pointer',
         }}
         onClick={() => {
             setCurrentInput(prevItems => {

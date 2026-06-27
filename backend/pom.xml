@@ -59,6 +59,12 @@
 			<version>5.1.0</version>
 		</dependency>
 
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<scope>compile</scope> <!-- Change scope to compile if using outside test classes -->
+		</dependency>
+
 		<!-- <dependency> 
 			<groupId>org.springframework.boot</groupId> 
 			<artifactId>spring-boot-starter-security</artifactId>

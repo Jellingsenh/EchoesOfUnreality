@@ -20,7 +20,7 @@ export default function AppearanceInput({
     const [tempInputValue, setTempInputValue] = useState<string | null>(currentInput ?? '') // declare hooks at top
 
     if (viewMode && (currentInput === null || currentInput === '')) {
-        return <div style={{ marginBottom: '-5px'}}></div> // josh need to fix spacing still
+        return <div style={{ marginBottom: '-5px'}}></div> 
     }
 
     const actualInputValue:string|null = (tempInputValue !== '') ? tempInputValue : (currentInput ?? '')

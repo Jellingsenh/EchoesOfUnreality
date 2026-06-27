@@ -1,5 +1,5 @@
 import { StrictMode } from "react"
-import { baseWebUrl } from "../../../resources/constants"
+import { baseWebUrl } from "../../resources/constants"
 import { Root } from "../../Echoes"
 
 Root.render(

@@ -1,4 +1,4 @@
-import { baseApiUrl } from "../../../../../resources/constants"
+import { baseApiUrl } from "../../../../resources/constants"
 import type { FullLocation } from "../LocationTypes/FullLocation"
 
 export default function randomizeUnlockedFields(

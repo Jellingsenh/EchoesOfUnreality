@@ -21,7 +21,7 @@ export default function SingleEnvironmentInput({
     }, [env])
 
     if (viewMode && (env === null || env === '')) {
-        return <></> // josh need to fix spacing still
+        return <></> // 
     }
 
     const actualInputValue:string|null = (tempInputValue !== '') ? tempInputValue : (env ?? '')
@@ -78,6 +78,7 @@ export default function SingleEnvironmentInput({
         />
         {!viewMode && !currentInputLocked && <button style={{
             alignSelf: 'center',
+            cursor: 'pointer',
         }}
         onClick={() => {
             setCurrentInput(prevItems => {

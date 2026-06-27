@@ -23,7 +23,7 @@ export default function SingleAnomalyInput({
     }, [anom])
 
     if (viewMode && (anom === null || anom === '')) {
-        return <></> // josh need to fix spacing still
+        return <></> // 
     }
 
     const actualInputValue:string|null = (tempInputValue !== '') ? tempInputValue : (anom ?? '')
@@ -81,6 +81,7 @@ export default function SingleAnomalyInput({
             }}
         />
         {!viewMode && !currentInputLocked && <button style={{
+            cursor: 'pointer',
             alignSelf: 'center',
             // marginRight: '5px',
         }}

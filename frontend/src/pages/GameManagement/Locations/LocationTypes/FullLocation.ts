@@ -16,5 +16,5 @@ export type FullLocation = {
     children: {name: string, type: string, charted: boolean}[] | null,
     anomalies: string[] | null,
     summary: string | null,
-    image: string | null,
+    // image: string | null, // image stored separately
 }  

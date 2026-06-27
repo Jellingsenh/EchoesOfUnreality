@@ -7,10 +7,11 @@ export default function LocationListItem({
     location: {name: string, type: string},
     selectLocation: (location: {name: string, type: string}) => void,
 }) {
-    return <div className="fadeInItem" style={{
+    return <div className="fadeInItem" tabIndex={0} style={{
         borderRadius: '5px',
         height: '20px',
         background: 'lightblue',
+        cursor: 'pointer',
         filter: 'drop-shadow(1px 1px 2px black)',
         transition: 'width 0.2s ease',
         alignSelf: 'center',

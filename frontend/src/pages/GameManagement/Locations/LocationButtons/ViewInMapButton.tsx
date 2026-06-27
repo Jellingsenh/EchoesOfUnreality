@@ -14,6 +14,7 @@ export default function ViewInMapButton({
             // fontSize: '8px',
             // marginRight: '10px',
             minWidth: 'max-content',
+            cursor: 'pointer',
         }}>
             View {currentLocationName} in map (tbd)
         </button>}

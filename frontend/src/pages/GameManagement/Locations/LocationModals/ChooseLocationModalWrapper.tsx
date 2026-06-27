@@ -77,7 +77,7 @@ export default function ChooseLocationModalWrapper({
             // marginLeft: '-20px',
             // overflowX: 'auto',
         }}>
-            <LocationFilters 
+            {false === noLocationsExist && <LocationFilters 
                 searchStr={searchStr}
                 setSearchStr={setSearchStr}
                 typeFilter={typeFilter}
@@ -88,7 +88,7 @@ export default function ChooseLocationModalWrapper({
                 setSortBy={setSortBy}
                 descending={descending}
                 setDescending={setDescending}
-            />
+            />}
         </div>
         {/* LIST LOCATIONS */}
         <div className='no-scrollbar' style={{
@@ -96,7 +96,7 @@ export default function ChooseLocationModalWrapper({
             marginTop: '10px',
             // display: 'flex',
             height: '100%',
-            overflowY: 'auto', // josh HERE
+            overflowY: 'auto', 
         }}>
             <InfiniteLocationList 
                 allCompressedLocations={allCompressedLocations}

@@ -1,8 +1,9 @@
 import type { JSX } from "react";
-import { baseWebUrl } from "../../resources/constants";
+import { baseWebUrl } from "../resources/constants";
 
 export default function WebPage({
     backButton,
+    alertBanner,
     locationModal,
     secondaryModal,
     title,
@@ -10,6 +11,7 @@ export default function WebPage({
     footer
 }:{
     backButton: JSX.Element,
+    alertBanner: JSX.Element | null,
     locationModal: JSX.Element | null,
     secondaryModal: JSX.Element | null,
     title: JSX.Element,
@@ -21,6 +23,9 @@ export default function WebPage({
         background: 'darkgrey', 
         padding: '60px' ,
     }}>
+        {/* HIDDEN ALERT BANNER */}
+        {alertBanner}
+
         {/* TOP BANNER */}
         <div style={{ 
                 display: 'flex', 

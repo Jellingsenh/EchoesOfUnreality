@@ -38,7 +38,7 @@ export default function NatureSection({
         || currentMaterialInput)
 
     if (viewMode && !anyNatureInputsPresent) {
-        return <></> // josh need to fix spacing still
+        return <></> // 
     }
 
     return <div style={{
@@ -114,8 +114,9 @@ export default function NatureSection({
                     && !viewMode &&
                     <button style={{
                         alignSelf: 'center',
-                        marginTop: '10px',
+                        marginTop: '8px',
                         marginBottom: '-5px',
+                        cursor: 'pointer',
                     }}
                     onClick={() => {
                         setCurrentBreathableInput(null)
@@ -144,6 +145,7 @@ export default function NatureSection({
                         marginLeft: '5px',
                         // marginBottom: '5px',
                         minWidth: 'max-content',
+                        cursor: 'pointer',
                     }}
                     onClick={() => {
                         setCurrentBreathableInput(false)

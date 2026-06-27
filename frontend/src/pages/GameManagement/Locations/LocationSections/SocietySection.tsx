@@ -58,7 +58,7 @@ export default function SocietySection({
             && (currentSecretsInput === null || currentSecretsInput === '') 
             && (currentAlliesInput === null || currentAlliesInput === '') 
             && (currentEnemiesInput === null || currentEnemiesInput === ''))) {
-        return <></> // josh need to fix spacing still
+        return <></> // 
     }
 
     return <div style={{
@@ -220,7 +220,9 @@ export default function SocietySection({
                             // currentEnemiesInput === null) 
                         && <button style={{
                             alignSelf: 'center',
-                            marginBottom: '5px'
+                            marginBottom: '5px',
+                            marginTop: '-2px',
+                            cursor: 'pointer',
                         }}
                         onClick={() => {
                             setCurrentHistoryInput(null)
@@ -256,6 +258,7 @@ export default function SocietySection({
                         // marginBottom: '5px',
                         marginLeft: '5px',
                         minWidth: 'max-content',
+                        cursor: 'pointer',
                     }}
                     onClick={() => {
                         setCurrentHistoryInput('')

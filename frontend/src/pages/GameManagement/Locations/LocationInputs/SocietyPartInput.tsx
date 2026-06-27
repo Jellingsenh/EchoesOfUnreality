@@ -25,7 +25,7 @@ export default function SocietyPartInput({
     }, [currentInput])
 
     if (viewMode && (currentInput === null || currentInput === '')) {
-        return <></> // josh need to fix spacing still
+        return <></> // 
     }
 
     const actualInputValue:string|null = (tempInputValue !== '') ? tempInputValue : (currentInput ?? '')

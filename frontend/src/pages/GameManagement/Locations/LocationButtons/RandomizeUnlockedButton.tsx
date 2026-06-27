@@ -17,6 +17,7 @@ export default function RandomizeUnlockedButton({
             // overflow: 'hidden',
             // fontSize: '8px',
             minWidth: 'max-content',
+            cursor: 'pointer',
         }}
         onClick={randomizeUnlockedFields}>
             {'Randomize ' + (allFieldsUnlocked ? 'all' : 'unlocked')}

@@ -14,6 +14,7 @@ export default function DeleteLocationButton({
             // fontSize: '8px',
             // marginRight: '10px',
             minWidth: 'max-content',
+            cursor: 'pointer',
         }}
         onClick={deleteLocationFromDB}>
             Delete {currentLocationName}

@@ -17,7 +17,7 @@ export default function MaterialsInput({
     // createMode: boolean,
 }) {
     if (viewMode && (currentInput === null || currentInput.length === 0 || currentInput.every(item => item.trim() === ''))) {
-        return <></> // josh need to fix spacing still
+        return <></> // 
     }
     
     return <OutlinedDiv 
@@ -48,7 +48,9 @@ export default function MaterialsInput({
             }}>
                 {((currentInput && currentInput.length > 0) ? '' : 'No Materials.  ')}
                 {!viewMode && !currentInputLocked && <button style={{
+                    cursor: 'pointer',
                     marginLeft: '5px',
+                    marginTop: (currentInput && currentInput.length > 0) ? '-2px' : '0px',
                 }}
                 onClick={() => {
                     setCurrentInput(prevMats => [...prevMats || [], ''])

@@ -1,5 +1,5 @@
 import { StrictMode, useState } from "react"
-import { baseWebUrl } from "../../../../resources/constants"
+import { baseWebUrl } from "../../../resources/constants"
 import { Root } from "../../../Echoes"
 import WebPage from "../../../components/WebPage"
 import SpinningLoader from "../../../components/SpinningLoader"
@@ -7,13 +7,14 @@ import { useInView } from "react-intersection-observer"
 import LocationFilters from "./LocationsFilterParts/LocationFilters"
 import InfiniteLocationList from "./LocationsList/InfiniteLocationList"
 import CreateLocationButton from "./LocationButtons/CreateLocationButton"
-import { getTextWidth } from "../../../components/helpers/TextHelpers"
-import doMobileFormatCheck from "../../../components/helpers/doMobileFormatCheck"
+import doMobileFormatCheck from "../../../helpers/doMobileFormatCheck"
 import getInitialLocationsFromAPI from "./LocationsNetworking/getInitialLocationsFromAPI"
 import getMoreLocationsFromAPI from "./LocationsNetworking/getMoreLocationsFromAPI"
 import ViewLocationModalWrapper from "./LocationModals/ViewLocationModalWrapper"
 import ChooseLocationModalWrapper from "./LocationModals/ChooseLocationModalWrapper"
 import GenerateLocationButton from "./LocationButtons/GenerateLocationButton"
+import { getTextWidth } from "../../../helpers/textHelpers"
+import TimedAlertBanner from "../../../components/TimedAlertBanner"
 
 Root.render(
   <StrictMode>
@@ -45,6 +46,11 @@ function Locations() {
       && (breathableFilter === null)
       && (sortBy === 'TIME')
       && descending)
+
+  // BANNER ARGUMENTS
+  const [alertBannerOpen, setAlertBannerOpen] = useState(false);
+  const [alertContent, setAlertContent] = useState<string|null>(null);
+  const [alertType, setAlertType] = useState<'success'|'warning'|'error'>('success');
 
   // MODAL 1 ARGUMENTS
   const [editMode, setEditMode] = useState<'VIEW' | 'EDIT' | 'CREATE'>('VIEW') 
@@ -123,6 +129,20 @@ function Locations() {
     setDoRefresh(prev => !prev)
   }
 
+  const triggerAlertBanner = (content:string, type:'success'|'warning'|'error') => {
+    if ('success' === type) {
+      console.log(content)
+    } else if ('error' === type) {
+      console.error(content)
+    } else { // warning
+      console.warn(content)
+    }
+    
+    setAlertContent(content)
+    setAlertType(type)
+    setAlertBannerOpen(true)
+  }
+
   function setMaxInfiniteItemWidth(itemList: {name: string, type: string}[]) {
     var maxLength = 0;
     for (const item of itemList) {
@@ -198,6 +218,15 @@ function Locations() {
   // BACK BUTTON
   const BackToGM = (<a href={baseWebUrl + "/routes/gamemanagement"}>{'< Game Management'}</a>);
 
+  const alertBanner = (
+    <TimedAlertBanner 
+        bannerOpen={alertBannerOpen}
+        setBannerOpen={setAlertBannerOpen}
+        alertContent={alertContent}
+        alertType={alertType}
+    />
+  )
+
   // MODAL 1
   const LocationModalDefinition = <ViewLocationModalWrapper 
     isMobile={isMobile}
@@ -240,6 +269,7 @@ function Locations() {
     resetLocationFilters={resetLocationFilters}
     refreshOnCloseModal={refreshOnCloseModal}
     setRefreshOnCloseModal={setRefreshOnCloseModal}
+    triggerAlertBanner={triggerAlertBanner}
   />
 
   // MODAL 2 
@@ -291,14 +321,14 @@ function Locations() {
 
   // LOCATIONS PAGE MAIN CONTENT
   const LocationsContent = (<div style={{ 
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'center',
-      // maxHeight: '80vh',
-      marginTop: '70px',
-      marginBottom: '40px',
-      // paddingTop: '200px',
-    }}>
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    // maxHeight: '80vh',
+    marginTop: '70px',
+    marginBottom: '40px',
+    // paddingTop: '200px',
+  }}>
     {/* GREY TOP BOX */}
     <div style={{ 
         display: 'flex', 
@@ -310,9 +340,10 @@ function Locations() {
         transform: 'translateX(-50%)',
         padding: '10px',
         zIndex: 50,
-        background: 'darkgrey' }}>
+        background: 'darkgrey' 
+    }}>
       {/* SORT & FILTER & SEARCH */}
-      <LocationFilters 
+      {false === noLocationsExist && <LocationFilters 
         searchStr={searchStr}
         setSearchStr={setSearchStr}
         typeFilter={typeFilter}
@@ -323,7 +354,7 @@ function Locations() {
         setSortBy={setSortBy}
         descending={descending}
         setDescending={setDescending}
-      />
+      />}
     </div>
     {/* LOADING */}
     {(true  === loadingLocations) ? 
@@ -398,6 +429,7 @@ function Locations() {
 
   return ( <WebPage 
     backButton={BackToGM} 
+    alertBanner={alertBanner}
     title={LocationsTitle}
     locationModal={LocationModalDefinition}
     secondaryModal={ChooseLocationModal}

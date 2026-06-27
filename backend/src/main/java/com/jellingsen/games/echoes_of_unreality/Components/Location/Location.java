@@ -21,7 +21,8 @@ import com.jellingsen.games.echoes_of_unreality.Components.Location.LocationEnum
     "anomalies", 
     "parent", 
     "position", 
-    "children" })
+    "children"
+ })
 public class Location {
     // _ID is created by the database. Used for updates.
     public String _id;

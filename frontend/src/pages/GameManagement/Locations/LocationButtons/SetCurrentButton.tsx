@@ -14,6 +14,7 @@ export default function SetCurrentButton({
             // overflow: 'hidden',
             // fontSize: '8px',
             minWidth: 'max-content',
+            cursor: 'pointer',
         }}>
             Set {currentLocationName} as current location (tbd)
         </button>}

@@ -17,6 +17,7 @@ export default function LockUnlockAllButton({
             // overflow: 'hidden',
             // fontSize: '8px',
             minWidth: 'max-content',
+            cursor: 'pointer',
         }}
         onClick={() => {
             if (allInputsUnlocked) {

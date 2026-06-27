@@ -12,7 +12,7 @@ export default function ViewLocationModal({
     modalFooter,
 }:{
     modalHidden: boolean,
-    modalOnClose: () => void,
+    modalOnClose: (forceRefreshOnClose:boolean) => void,
     modalTitle: JSX.Element | null,
     modalContent: JSX.Element,
     modalFooter: JSX.Element | null,
@@ -20,7 +20,7 @@ export default function ViewLocationModal({
 
     return <Dialog 
         open={!modalHidden} 
-        onClose={modalOnClose} 
+        onClose={() => modalOnClose(false)} 
         fullWidth 
         maxWidth={false}
         sx={{

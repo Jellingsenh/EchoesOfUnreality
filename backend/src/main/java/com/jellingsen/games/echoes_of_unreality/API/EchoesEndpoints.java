@@ -3,13 +3,17 @@ package com.jellingsen.games.echoes_of_unreality.API;
 import java.util.Vector;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.jellingsen.games.echoes_of_unreality.API.Filters.LocationFilterOptions;
 import com.jellingsen.games.echoes_of_unreality.Components.Character.NPC;
@@ -99,6 +103,28 @@ public class EchoesEndpoints {
         loc.type = type;
         return unrealityManager.getLocationFromDatabase(loc); // josh include _id
     }
+
+    // IMAGES
+
+    @PostMapping(value = "/addNewImage/{name}/{type}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> addNewImage(@RequestParam("image") MultipartFile imageFile, @PathVariable String name, @PathVariable LocationType type) {
+        // System.out.println("Received add image request for " + name + type);
+        return unrealityManager.addImage(name, type, imageFile);
+    }
+
+    @GetMapping(value = "/getImage/{name}/{type}", produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
+    public ResponseEntity<byte[]> getImage(@PathVariable String name, @PathVariable LocationType type) {
+        // System.out.println("Received get image request for " + name + type);
+        return unrealityManager.getImage(name, type);
+    }
+
+    @GetMapping("/deleteImage/{name}/{type}")
+    public ResponseEntity<String> deleteImage(@PathVariable String name, @PathVariable LocationType type) {
+        // System.out.println("Received delete image request for " + name + type);
+        return unrealityManager.deleteImage(name, type);
+    }
+
+    // RELATIVES
 
     @GetMapping("/generateNewCompressedParent/{type}/{disordered}")
     public CompressedLocation generateNewCompressedParent(@PathVariable LocationType type, @PathVariable boolean disordered) {

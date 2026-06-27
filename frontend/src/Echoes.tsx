@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { baseWebUrl } from '../resources/constants'
+import { baseWebUrl } from './resources/constants'
 
 export const Root = createRoot(document.getElementById('root')!)
 
@@ -24,12 +24,6 @@ function Echoes() {
       <a href={baseWebUrl + "/routes/rules"}>Rules</a>
       <div></div>
       <a href={baseWebUrl + "/routes/support"}>Support</a>
-      {/* <button
-        type="button"
-        onClick={() => setCount((count) => count + 1)}
-      >
-        Count is {count}
-      </button> */}
     </>
   )
 }

@@ -16,7 +16,7 @@ export default function LocationAnomalyInput({
     viewMode: boolean,
 }) { 
     if (viewMode && (currentInput === null || currentInput.length === 0 || currentInput.every(item => item.trim() === ''))) {
-        return <></> // josh need to fix spacing still
+        return <></> // 
     }
 
     // console.log('rendering anomaly input with current input: ', currentInput)
@@ -98,8 +98,10 @@ export default function LocationAnomalyInput({
                         </div>
                         {!viewMode && !currentInputLocked && <button style={{
                             marginLeft: '5px',
+                            marginTop: '-2px',
                             // marginBottom: '5px',
                             minWidth: 'max-content',
+                            cursor: 'pointer',
                             
                         }} onClick={() => {
                             setCurrentInput(prevItems => [...prevItems || [], ''])                     

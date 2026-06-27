@@ -238,27 +238,32 @@ public class DatabaseConnection {
         return locationsCollection != null && locationsCollection.find(new Document("_id", id)).first() != null;
     }
 
+    public CompressedLocation getLocationsOldNameAndType(ObjectId locationId) {
+        if (locationsCollection == null) { return null; }
+
+        Document tempDoc = locationsCollection.find(new Document("_id", locationId))
+        .projection(new Document("name", 1).append("type", 1))
+        .first();
+
+        if (tempDoc == null) { return null; }
+
+        String name = tempDoc.get("name", String.class);
+        String type = tempDoc.get("type", String.class);
+
+        CompressedLocation tempLoc = new CompressedLocation();
+        tempLoc.name = name;
+        tempLoc.type = LocationType.valueOf(type);
+        
+        return tempLoc;
+    }
+
+    // SAVE, EDIT, & DELETE
+
     public Location createNewLocationSave(Location location) { // creating a new location
         if (location == null || location.name == null || location.type == null) {
             System.out.println("> Error: Location name or type is null.");
             return null;
         }
-
-        if (isLocationInCollection(location.name, location.type)) {
-            System.out.println("> Can not create a new location with name " + location.name + " & type " + location.type + ", a location with that name and type already exists.");
-            return location;
-        }
-
-        // System.out.println(
-        //     "  -->  saving location: " + 
-        //     location.name +
-        //     " of type " + location.type +
-        //     ((location.parent != null) ? (", with parent " + location.parent.name) : "") +
-        //     ((location.children != null && !location.children.isEmpty()) ? (
-        //         ", with children: " + 
-        //         Arrays.toString(location.children.stream().map(ch -> ch.name + " (" + ch.charted + ")").toArray(String[]::new))
-        //     ) : "") 
-        // );
 
         try {
             location._id = this.locationsCollection.insertOne(new Document("name", location.name)
@@ -273,6 +278,7 @@ public class DatabaseConnection {
                 .append("parent", location.parent)
                 .append("position", location.position)
                 .append("children", location.children)
+                // .append("image", location.image)
                 .append("timestamp", Instant.now().atZone(ZoneId.of("UTC")).getLong(ChronoField.INSTANT_SECONDS)))
             .getInsertedId().asObjectId().getValue().toHexString();
             System.out.println("> Inserted location " + location.name);
@@ -283,14 +289,8 @@ public class DatabaseConnection {
         }
     }
 
-    public Location updateLocationSave(Location location) {
-        if (location != null && location._id != null && location._id.length() > 0) {
-            // String id = "ObjectId('" + location._id + "')";
-            ObjectId locationId = new ObjectId(location._id);
-            if (!isLocationInCollectionById(locationId)) {
-                System.out.println("> Can not update location with id " + locationId + ", no location with that id exists.");
-                return null;
-            }
+    public Location updateLocationSave(Location location, ObjectId locationId) {
+        if (location != null && locationId != null) {
             try {
                 this.locationsCollection.updateOne(
                     Filters.eq("_id", locationId),
@@ -307,6 +307,7 @@ public class DatabaseConnection {
                         Updates.set("parent", location.parent),
                         Updates.set("position", location.position),
                         Updates.set("children", location.children),
+                        // Updates.set("image", location.image),
                         Updates.set("timestamp", Instant.now().atZone(ZoneId.of("UTC")).getLong(ChronoField.INSTANT_SECONDS)
                     )));
                     System.out.println("> Updated location " + location.name);
@@ -356,6 +357,55 @@ public class DatabaseConnection {
         // System.out.println("retrieved location id: " + _id);
         return retrievedLocation;
     }
+
+    // IMAGES
+
+    public boolean addImageFilepathToLocation(String name, LocationType type, String newImageFilepath) {
+        try {
+            this.locationsCollection.updateOne(
+                Filters.and(Filters.eq("name", name), Filters.eq("type", type)),
+                Updates.set("image", newImageFilepath));
+                // System.out.println("> Updated image for location " + name);
+                return true;
+        } catch (Exception e) {
+            System.out.println("> Error updating image for location " + name + ": " + e.getMessage());
+            return false;
+        }
+    }
+
+    public String getImageFilepathFromLocation(String name, LocationType type) {
+        if (locationsCollection == null) { return null; }
+
+        try {
+            Document tempDoc = this.locationsCollection.find(new Document("name", name).append("type", type))
+            .projection(new Document("image", 1))
+            .first();
+
+            if (tempDoc == null) { return null; }
+            return tempDoc.get("image", String.class);
+        } catch (Exception e) {
+            System.out.println("> Error retreiving image for location " + name + ": " + e.getMessage());
+            return null;
+        }
+    }
+
+    public String deleteImageFromLocation(String name, LocationType type) { // returns the filepath
+        if (locationsCollection == null) { return null; }
+
+        try {
+            Document tempDoc = this.locationsCollection.findOneAndUpdate(
+                Filters.and(Filters.eq("name", name), Filters.eq("type", type)),
+                Updates.unset("image"));
+                
+            if (tempDoc == null) { return null; }
+            return tempDoc.get("image", String.class);
+        } catch (Exception e) {
+            System.out.println("> Error retreiving image for location " + name + ": " + e.getMessage());
+            return null;
+        }
+    }
+
+    // RELATIVES
 
     public CompressedLocation findExistingParent(CompressedLocation currentLoc) {
         System.out.println("  --> Searching for an existing parent of "+currentLoc.name);

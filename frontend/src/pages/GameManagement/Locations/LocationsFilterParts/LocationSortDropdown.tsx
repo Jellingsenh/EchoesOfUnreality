@@ -1,5 +1,5 @@
 import Select, { components } from "react-select"
-import type { valueLabel } from "../../../../components/helpers/ValueLabel"
+import type { valueLabel } from "../LocationTypes/ValueLabel"
 import { useState } from "react"
 
 export function LocationSortDropdown({
@@ -30,6 +30,7 @@ export function LocationSortDropdown({
     return <div style={{
         display: 'flex',
         justifyContent: 'center',
+        // cursor: 'pointer',
         // marginRight: '4px',
         }}>
         <Select
@@ -38,41 +39,43 @@ export function LocationSortDropdown({
             options={sortOptions}
             styles={{
                 control: (base) => ({ // main box
-                ...base,
-                alignContent: 'center',
-                border: 'none',
-                boxShadow: 'none', // remove blue focus (might need to change for accessibility)
-                transition: 'width 0.3s ease',
-                minWidth: 'max-content',
-                // width: !sortByPicked ? '40px' :
-                //         sortBy === 'NAME' ? '55px' : 
-                //         sortBy === 'TYPE' ? '50px' : 
-                //         '85px', // TIME
-                minHeight: '25px',
-                fontSize: '0.8rem',
-                textAlign: 'center',
+                    ...base,
+                    alignContent: 'center',
+                    border: 'none',
+                    // boxShadow: 'none', // remove blue focus (might need to change for accessibility)
+                    transition: 'width 0.3s ease',
+                    minWidth: 'max-content',
+                    // width: !sortByPicked ? '40px' :
+                    //         sortBy === 'NAME' ? '55px' : 
+                    //         sortBy === 'TYPE' ? '50px' : 
+                    //         '85px', // TIME
+                    minHeight: '25px',
+                    fontSize: '0.8rem',
+                    textAlign: 'center',
+                    cursor: 'pointer',
                 }),
                 // container: (base) => ({ // entire container
                 //   ...base,
                 //   // textAlign: 'center',
                 // }),
                 menu: (base) => ({ // dropdown menu
-                ...base,
-                width: '80px',
-                marginTop: '3px',
-                // transition: 'marginLeft 0.2s ease',
-                marginLeft: !sortByPicked ? '-19px' : 
-                        sortBy === 'NAME' ? '-8px' : 
-                        sortBy === 'TYPE' ? '-9px' : 
-                        '8px', // TIME
-                fontSize: '0.7rem',
+                    ...base,
+                    width: '80px',
+                    marginTop: '3px',
+                    // transition: 'marginLeft 0.2s ease',
+                    marginLeft: !sortByPicked ? '8px' : 
+                            sortBy === 'NAME' ? '-8px' : 
+                            sortBy === 'TYPE' ? '-9px' : 
+                            '8px', // TIME
+                    fontSize: '0.7rem',
                 }),
                 option: (base) => ({ // selection options
-                ...base,
-                maxHeight: '20px',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
+                    ...base,
+                    maxHeight: '20px',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    // cursor: 'pointer',
                 }),
                 // placeholder: (base) => ({
                 //   ...base,
@@ -97,7 +100,8 @@ export function LocationSortDropdown({
             }}
         />
         {/* DESCENDING */}
-        <div onClick={() => setDescending(prev => !prev)}
+        <div
+        onClick={() => setDescending(prev => !prev)}
         style={{
             background: 'white',
             borderRadius: '3px',
@@ -114,9 +118,10 @@ export function LocationSortDropdown({
                 transition: 'transform 0.3s ease',
                 transform: descending ? 'rotate(0deg)' : 'rotate(180deg)',
                 marginLeft: '5px',
+                cursor: 'pointer',
                 // marginRight: '5px',
             }}>
-                <components.DownChevron size={14} />
+                <components.DownChevron tabIndex={0} size={14} />
             </div>
         </div>
     </div>

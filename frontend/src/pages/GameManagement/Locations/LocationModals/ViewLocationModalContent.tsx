@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react'
-import { baseApiUrl } from '../../../../../resources/constants'
+import { useState } from 'react'
 import SpinningLoader from '../../../../components/SpinningLoader'
 import NameInput from '../LocationInputs/NameInput';
 import LocationTypeDropdown from '../LocationDropdowns/LocationTypeDropdown';
@@ -12,8 +11,9 @@ import ChildrenSection from '../LocationSections/ChildrenSection';
 import LocationAnomalyInput from '../LocationInputs/LocationAnomalyInput';
 import SummaryInput from '../LocationInputs/SummaryInput';
 import LocationSizeDropdown from '../LocationDropdowns/LocationSizeDropdown';
-import ImageSection from '../LocationSections/ImageSection';
+import LocationImageSection from '../LocationSections/LocationImageSection';
 import PositionOnParentSection from '../LocationSections/PositionOnParentSection';
+import getLocationForViewing from '../LocationsNetworking/getLocationForViewing';
 
 export default function ViewLocationModalContent({
    isMobile,
@@ -111,11 +111,15 @@ export default function ViewLocationModalContent({
    setLocationSummary,
    summaryLocked,
    setSummaryLocked,
-   locationImage,
-   setLocationImage,
    resetLocationFilters,
    // endOfList,
    setRefreshOnCloseModal,
+   triggerAlertBanner,
+   imageUrl,
+   setImageUrl,
+   locationImageEntry,
+   setLocationImageEntry,
+   setLocationImageWasPresent,
 }:{
    isMobile: boolean,
    currentLocation: {name: string, type: string} | null, 
@@ -214,130 +218,65 @@ export default function ViewLocationModalContent({
    locationSummary: string | null,
    setLocationSummary: React.Dispatch<React.SetStateAction<string | null>>,
    summaryLocked: boolean,
-   setSummaryLocked: React.Dispatch<React.SetStateAction<boolean>>,
-   locationImage: string | null,
-   setLocationImage: React.Dispatch<React.SetStateAction<string | null>>, // josh todo
+   setSummaryLocked: React.Dispatch<React.SetStateAction<boolean>>, 
    resetLocationFilters: () => void,
    // endOfList: boolean,
    setRefreshOnCloseModal: React.Dispatch<React.SetStateAction<boolean>>,
+   triggerAlertBanner: (content:string, type:'success'|'warning'|'error') => void,
+   imageUrl: string | null,
+   setImageUrl: React.Dispatch<React.SetStateAction<string | null>>,
+   locationImageEntry: File | null,
+   setLocationImageEntry: React.Dispatch<React.SetStateAction< File | null>>,
+   setLocationImageWasPresent: React.Dispatch<React.SetStateAction<boolean>>,
 }) {
-   // josh isMobile
-   useEffect(() => {
-      if (isMobile) {
-         console.log ('mobile mode')
-      }
-   }, [isMobile])
-
    const [loadingLocation, setLoadingLocation] = useState(false) // loading location state
+   const [loadingLocationImage, setLoadingLocationImage] = useState(false) 
 
    // GET LOCATION FUNCTION
-   useEffect(() => { 
-      const controller3 = new AbortController(); // stop call from happenig 2x
+   getLocationForViewing(
+      createMode,
+      currentLocation,
+      setLoadingLocation,
+      setLoadingLocationImage,
+      setLocationId,
+      setLocationName,
+      setLocationType,
+      setLocationSize,
+      setLocationModifier,
+      setLocationAppearance,
+      setLocationNatureBreathable,
+      setLocationNatureGravity,
+      setLocationNatureEnvironments,
+      setLocationNatureMaterials,
+      setLocationSocietyHistory,
+      setLocationSocietyReligion,
+      setLocationSocietyTechnology,
+      setLocationSocietyCulture,
+      setLocationSocietyGovernment,
+      setLocationSocietyEconomy,
+      setLocationSocietySecrets,
+      setLocationSocietyAllies,
+      setLocationSocietyEnemies,
+      setLocationParentName,
+      setLocationParentType,
+      setLocationParentCharted,
+      setLocationPositionX,
+      setLocationPositionY,
+      setLocationChildren,
+      setLocationAnomalies,
+      setLocationSummary,
+      addToExcludedListLocations,
+      imageUrl,
+      setImageUrl,
+      setLocationImageWasPresent,
+   )
 
-      if (createMode) {
-         setLocationId(null)
-         setLocationName(null)
-         setLocationType('PLACE')
-         setLocationAppearance(null)
-         setLocationModifier('NONE')
-         setLocationSize('STANDARD')
-         setLocationNatureBreathable(null)
-         setLocationNatureGravity(null)
-         setLocationNatureEnvironments(null)
-         setLocationNatureMaterials(null)
-         setLocationSocietyHistory(null)
-         setLocationSocietyReligion(null)
-         setLocationSocietyTechnology(null)
-         setLocationSocietyCulture(null)
-         setLocationSocietyGovernment(null)
-         setLocationSocietyEconomy(null)
-         setLocationSocietySecrets(null)
-         setLocationSocietyAllies(null)
-         setLocationSocietyEnemies(null)
-         setLocationParentName(null)
-         setLocationParentType(null)
-         setLocationParentCharted(null)
-         setLocationPositionX(0)
-         setLocationPositionY(0)
-         setLocationChildren([])
-         setLocationAnomalies([])
-         setLocationSummary(null)
-      } else {
-         const { signal } = controller3;
-
-         async function getCurrentFullLocation()  {
-            if (!currentLocation) return;
-            setLoadingLocation(true); // Start loading state
-            try {
-               const res = await fetch(baseApiUrl + '/getLocation/' + currentLocation.name + '/' + currentLocation.type, {
-                  method: 'GET',
-                  signal,
-               });
-               // console.log('fetching full location with name: ' + currentLocation.name + ' & type: ' + currentLocation.type)
-               const result = await res.json();
-               // console.log(' got full location: ' + JSON.stringify(result))
-               setLocationId(result._id)
-               setLocationName(result.name)
-               setLocationType(result.type)
-               setLocationAppearance(result.appearance)
-               setLocationModifier(result.modifier)
-               setLocationSize(result.size)
-               if (result.nature) {
-                  setLocationNatureBreathable(result.nature.breathable)
-                  setLocationNatureGravity(result.nature.gravity)
-                  setLocationNatureEnvironments(result.nature.environments)
-                  setLocationNatureMaterials(result.nature.materials)
-               }
-               if (result.society) {
-                  setLocationSocietyHistory(result.society.history)
-                  setLocationSocietyReligion(result.society.religion)
-                  setLocationSocietyTechnology(result.society.technology)
-                  setLocationSocietyCulture(result.society.culture)
-                  setLocationSocietyGovernment(result.society.government)
-                  setLocationSocietyEconomy(result.society.economy)
-                  setLocationSocietySecrets(result.society.secrets)
-                  setLocationSocietyAllies(result.society.allies)
-                  setLocationSocietyEnemies(result.society.enemies)
-               }
-               if (result.parent) {
-                  setLocationParentName(result.parent.name)
-                  setLocationParentType(result.parent.type)
-                  setLocationParentCharted(result.parent.charted)
-                  addToExcludedListLocations(result.parent.name, result.parent.type) // exclude parent from child selection list
-               }
-               if (result.position) {
-                  setLocationPositionX(result.position.x)
-                  setLocationPositionY(result.position.y)
-               }
-               if (result.children) {
-                  setLocationChildren(result.children)
-                  for (const child of result.children) {
-                     addToExcludedListLocations(child.name, child.type) // exclude children from parent selection list
-                  }
-               }
-               setLocationAnomalies(result.anomalies)
-               setLocationSummary(result.summary)
-            } catch (error: any) {
-               if (error.name === 'AbortError') {
-                  // console.log('Request was canceled intentionally.');
-                  return; // Gracefully exit
-               }
-               console.error('Error getting location:', error);
-            } finally {
-               setLoadingLocation(false); // End loading state regardless of success or failure
-            }
-         }
-
-         getCurrentFullLocation()
-      }
-      return () => {
-         controller3.abort(); // stop call from happenig 2x
-      };
-   }, [currentLocation])
-
-   // console.log('rendering View/Edit Modal for ' + currentLocation?.name + ' with locationName: ' + locationName)
-   // console.log('loading: ', loadingLocation)
-
+   if (isMobile) return <div style={{
+      border: '1px solid blue', // JOSH TODO MOBILE MODE
+      minWidth: '100px',
+   }}>
+      mobile mode (tbd)
+   </div>
     return (<div style={{
       // border & color are set in WebPage.tsx
       display: 'flex',
@@ -484,10 +423,16 @@ export default function ViewLocationModalContent({
                      minWidth: 'max-content',
                      // paddingRight: '10px',
                   }}>
-                     <ImageSection 
+                     <LocationImageSection 
                         viewMode={viewMode}
-                        imageInput={locationImage}
-                        setImageInput={setLocationImage}
+                        loadingLocationImage={loadingLocationImage}
+                        setLoadingLocationImage={setLoadingLocationImage}
+                        imageUrlInput={imageUrl}
+                        setImageUrlInput={setImageUrl}
+                        appearanceText={locationAppearance ?? 'No image text found.'}
+                        locationImageEntry={locationImageEntry}
+                        setLocationImageEntry={setLocationImageEntry}
+                        // setWasImageRemoved={setWasImageRemoved}
                      />
                      <ParentSection currentParentNameInput={locationParentName}
                         setCurrentParentNameInput={setLocationParentName}
@@ -516,6 +461,7 @@ export default function ViewLocationModalContent({
                         childDisordered={'DISORDERED' ===  locationModifier}
                         // endOfList={endOfList}
                         setRefreshOnCloseModal={setRefreshOnCloseModal}
+                        triggerAlertBanner={triggerAlertBanner}
                      />
                      {locationParentName && <PositionOnParentSection 
                         currentXInput={locationPositionX}
@@ -549,6 +495,7 @@ export default function ViewLocationModalContent({
                         parentType={locationType}
                         // endOfList={endOfList}
                         setRefreshOnCloseModal={setRefreshOnCloseModal}
+                        triggerAlertBanner={triggerAlertBanner}
                      />
                   </div>
                </div>

@@ -1,5 +1,4 @@
 import { useState } from "react";
-import LocationModal from "./ViewLocationModal";
 import ViewLocationModalContent from "./ViewLocationModalContent";
 import DeleteLocationButton from "../LocationButtons/DeleteLocationButton";
 import ViewInMapButton from "../LocationButtons/ViewInMapButton";
@@ -12,6 +11,8 @@ import saveLocationToAPI from "../LocationsNetworking/saveLocationToAPI";
 import randomizeLocationInAPI from "../LocationsNetworking/randomizeLocationInAPI";
 import deleteLocationInAPI from "../LocationsNetworking/deleteLocationInAPI";
 import editLocationInAPI from "../LocationsNetworking/editLocationInAPI";
+import ViewLocationModal from "./ViewLocationModal";
+import deleteLocationImageInDB from "../LocationsNetworking/deleteLocationImageInDB";
 
 export default function ViewLocationModalWrapper ({
     isMobile,
@@ -54,6 +55,7 @@ export default function ViewLocationModalWrapper ({
     resetLocationFilters,
     refreshOnCloseModal,
     setRefreshOnCloseModal,    
+    triggerAlertBanner,
 }:{
     isMobile: boolean,
     isModalHidden: boolean,
@@ -95,7 +97,7 @@ export default function ViewLocationModalWrapper ({
     resetLocationFilters: () => void,
     refreshOnCloseModal: boolean,
     setRefreshOnCloseModal: React.Dispatch<React.SetStateAction<boolean>>,
-
+    triggerAlertBanner: (content:string, type:'success'|'warning'|'error') => void,
 }) {
     const[locationId, setLocationId] = useState<string | null>(null)
     const [locationName, setLocationName] = useState<string | null>(null)
@@ -119,9 +121,13 @@ export default function ViewLocationModalWrapper ({
     const [locationPositionY, setLocationPositionY] = useState<number | null>(null)
     const [locationAnomalies, setLocationAnomalies] = useState<string[] | null>([])
     const [locationSummary, setLocationSummary] = useState<string | null>(null)
-    const [locationImage, setLocationImage] = useState<string | null>(null)
+    const [imageUrl, setImageUrl] = useState<string | null>(null)
+    const [locationImageEntry, setLocationImageEntry] = useState<File | null>(null)
+    const [locationImageWasPresent, setLocationImageWasPresent] = useState(false)
+    // const [wasImageRemoved, setWasImageRemoved] = useState(false)
     // location snapshot (for detecting unsaved changes)
     const [snapshotLocation, setSnapshotLocation] = useState<FullLocation | null>(null)
+    const [snapshotImageUrl, setSnapshotImageUrl] = useState<string | null>(null)
     // locked variables
     const [sizeLocked, setSizeLocked] = useState(false)
     const [modifierLocked, setModifierLocked] = useState(false)
@@ -169,10 +175,9 @@ export default function ViewLocationModalWrapper ({
         "children": locationChildren,
         "anomalies": locationAnomalies,
         "summary": locationSummary,
-        "image": locationImage,
     }
 
-    const modalOnClose = () => {
+    const modalOnClose = (forceRefreshOnClose:boolean) => {
         // warning about unsaved changes
         if ((('CREATE' === editMode) && isAnyDataPresent())
         || (('EDIT' === editMode) && isAnyDataChanged())) {
@@ -190,7 +195,7 @@ export default function ViewLocationModalWrapper ({
         unlockAllInputs()
         resetAllModalFields()
         setExcludedListLocations([])
-        if (refreshOnCloseModal) refreshLocations()
+        if (forceRefreshOnClose || refreshOnCloseModal) refreshLocations()
     }
 
     const lockedListStr:string = ('/' 
@@ -248,7 +253,7 @@ export default function ViewLocationModalWrapper ({
         setLocationChildren(result.children ?? null)
         setLocationAnomalies(result.anomalies ?? null)
         setLocationSummary(result.summary ?? null)
-        setLocationImage(result.image ?? null)
+        // setImageUrl(result.image ?? null) // do not randomize image
     }
 
     function unlockAllInputs() {
@@ -301,7 +306,7 @@ export default function ViewLocationModalWrapper ({
         setCurrentCompressedLocation(location)
     }
 
-        function isAnyDataPresent() {
+    function isAnyDataPresent(): boolean {
         // console.log('checking if any data is present...')
         return ((locationName && locationName.length > 0)
             || (locationType && ('PLACE' !== locationType))
@@ -309,7 +314,7 @@ export default function ViewLocationModalWrapper ({
             || (locationModifier && 'NONE' !== locationModifier)
             || (locationAppearance && locationAppearance.length > 0)
             || locationNatureBreathable 
-            || locationNatureGravity 
+            || (locationNatureGravity !== null)
             || (locationNatureEnvironments && locationNatureEnvironments.length > 0)
             || (locationNatureMaterials && locationNatureMaterials.length > 0)
             || (locationSocietyHistory && locationSocietyHistory.length > 0)
@@ -321,48 +326,49 @@ export default function ViewLocationModalWrapper ({
             || (locationSocietySecrets && locationSocietySecrets.length > 0)
             || (locationSocietyAllies && locationSocietyAllies.length > 0)
             || (locationSocietyEnemies && locationSocietyEnemies.length > 0)
-            || locationParentName
-            || locationParentType
-            || (locationParentName && locationPositionX && locationPositionY)
+            || (locationParentName !== null && locationParentName.length > 0)
+            || (locationParentType !== null)
+            || ((locationParentName !== null) &&  (locationPositionX !== null) && (locationPositionY !== null))
             || (locationChildren && locationChildren.length > 0) 
             || (locationAnomalies && locationAnomalies.length > 0) 
             || (locationSummary && locationSummary.length > 0)
-            || locationImage)
+            || (imageUrl !== null))
     }
 
-    function isAnyDataChanged() {
-        if (snapshotLocation == null) return false // no snapshot, so no changes
-        console.log('testing location snapshot...')
-        console.log('snapshot:')
-        console.log(snapshotLocation)
-        console.log('current:')
-        console.log(jsonBody)
-        return (!equalsIfNullAndEmptyStrAreEqual(jsonBody.name, snapshotLocation.name)
-            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.type, snapshotLocation.type)
-            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.size, snapshotLocation.size)
-            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.modifier, snapshotLocation.modifier)
-            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.appearance, snapshotLocation.appearance)
-            || jsonBody.nature?.breathable !== snapshotLocation.nature?.breathable
-            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.nature?.gravity, snapshotLocation.nature?.gravity)
-            || JSON.stringify(jsonBody.nature?.environments) !== JSON.stringify(snapshotLocation.nature?.environments)
-            || JSON.stringify(jsonBody.nature?.materials) !== JSON.stringify(snapshotLocation.nature?.materials)
-            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.society?.history, snapshotLocation.society?.history)
-            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.society?.religion, snapshotLocation.society?.religion)
-            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.society?.technology, snapshotLocation.society?.technology)
-            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.society?.culture, snapshotLocation.society?.culture)
-            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.society?.government, snapshotLocation.society?.government)
-            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.society?.economy, snapshotLocation.society?.economy)
-            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.society?.secrets, snapshotLocation.society?.secrets)
-            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.society?.allies, snapshotLocation.society?.allies)
-            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.society?.enemies, snapshotLocation.society?.enemies)
-            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.parent?.name, snapshotLocation.parent?.name)
-            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.parent?.type, snapshotLocation.parent?.type)
-            // || jsonBody.parent?.charted !== snapshotLocation.parent?.charted
-            || JSON.stringify(jsonBody.position) !== JSON.stringify(snapshotLocation.position)
-            || JSON.stringify(jsonBody.children) !== JSON.stringify(snapshotLocation.children)
-            || JSON.stringify(jsonBody.anomalies) !== JSON.stringify(snapshotLocation.anomalies)
-            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.summary, snapshotLocation.summary)
-            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.image, snapshotLocation.image))
+    function isAnyDataChanged(): boolean {
+        if (snapshotLocation === null && snapshotImageUrl === null) return false // no snapshot, so no changes
+        // console.log('testing location snapshot...')
+        // console.log('snapshot:')
+        // console.log(snapshotLocation)
+        // console.log('current:')
+        // console.log(jsonBody)
+        return (!equalsIfNullAndEmptyStrAreEqual(jsonBody.name, snapshotLocation?.name)
+            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.type, snapshotLocation?.type)
+            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.size, snapshotLocation?.size)
+            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.modifier, snapshotLocation?.modifier)
+            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.appearance, snapshotLocation?.appearance)
+            || jsonBody.nature?.breathable !== snapshotLocation?.nature?.breathable
+            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.nature?.gravity, snapshotLocation?.nature?.gravity)
+            || JSON.stringify(jsonBody.nature?.environments) !== JSON.stringify(snapshotLocation?.nature?.environments)
+            || JSON.stringify(jsonBody.nature?.materials) !== JSON.stringify(snapshotLocation?.nature?.materials)
+            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.society?.history, snapshotLocation?.society?.history)
+            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.society?.religion, snapshotLocation?.society?.religion)
+            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.society?.technology, snapshotLocation?.society?.technology)
+            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.society?.culture, snapshotLocation?.society?.culture)
+            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.society?.government, snapshotLocation?.society?.government)
+            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.society?.economy, snapshotLocation?.society?.economy)
+            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.society?.secrets, snapshotLocation?.society?.secrets)
+            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.society?.allies, snapshotLocation?.society?.allies)
+            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.society?.enemies, snapshotLocation?.society?.enemies)
+            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.parent?.name, snapshotLocation?.parent?.name)
+            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.parent?.type, snapshotLocation?.parent?.type)
+            // || jsonBody.parent?.charted !== snapshotLocation?.parent?.charted
+            || JSON.stringify(jsonBody.position) !== JSON.stringify(snapshotLocation?.position)
+            || JSON.stringify(jsonBody.children) !== JSON.stringify(snapshotLocation?.children)
+            || JSON.stringify(jsonBody.anomalies) !== JSON.stringify(snapshotLocation?.anomalies)
+            || !equalsIfNullAndEmptyStrAreEqual(jsonBody.summary, snapshotLocation?.summary)
+            || !equalsIfNullAndEmptyStrAreEqual(imageUrl, snapshotImageUrl)
+        )
     }
 
     function equalsIfNullAndEmptyStrAreEqual(str1: string | null | undefined, str2: string | null | undefined) {
@@ -372,9 +378,10 @@ export default function ViewLocationModalWrapper ({
     }
 
     function takeLocationSnapshot() {
-        console.log('taking location snapshot...')
-        console.log(jsonBody)
+        // console.log('taking location snapshot...')
+        // console.log(jsonBody)
         setSnapshotLocation(jsonBody)
+        setSnapshotImageUrl(imageUrl)
     }
 
     function resetAllModalFields() {
@@ -404,7 +411,9 @@ export default function ViewLocationModalWrapper ({
         setLocationChildren(null)
         setLocationAnomalies(null)
         setLocationSummary(null)
-        setLocationImage(null)
+        setImageUrl(null)
+        setLocationImageEntry(null)
+        setLocationImageWasPresent(false)
     }
     
     // MODAL CONTENT
@@ -519,13 +528,16 @@ export default function ViewLocationModalWrapper ({
         setLocationSummary={setLocationSummary}
         summaryLocked={summaryLocked}
         setSummaryLocked={setSummaryLocked}
-        locationImage={locationImage}
-        setLocationImage={setLocationImage}
         resetLocationFilters={resetLocationFilters}
         // endOfList={endOflist}
         setRefreshOnCloseModal={setRefreshOnCloseModal}
-        />
-    );
+        triggerAlertBanner={triggerAlertBanner}
+        imageUrl={imageUrl}
+        setImageUrl={setImageUrl}
+        locationImageEntry={locationImageEntry}
+        setLocationImageEntry={setLocationImageEntry}
+        setLocationImageWasPresent={setLocationImageWasPresent}
+    />);
     
     // MODAL 1 FOOTER
     const LocationModalFooter = (<div className='no-scrollbar' style={{
@@ -556,7 +568,7 @@ export default function ViewLocationModalWrapper ({
                 jsonBody,
                 locationName ?? 'location',
                 modalOnClose,
-                refreshLocations
+                triggerAlertBanner
             )}
         /> :
         <ViewInMapButton 
@@ -602,31 +614,47 @@ export default function ViewLocationModalWrapper ({
             locationName={locationName}
             // currentLocationName={locationName ?? 'location'}
             setEditMode={setEditMode}
+            setNameAndTypeLocked={() => {
+                setNameLocked(true)
+                setTypeLocked(true)
+            }}
             takeLocationSnapshot={takeLocationSnapshot}
             saveLocationToDB={() => saveLocationToAPI(
                 jsonBody,
                 locationName ?? 'location',
+                locationImageEntry,
                 setLocationId,
                 setEditMode,
                 setExcludedListLocations,
-                setRefreshOnCloseModal
+                setRefreshOnCloseModal,
+                triggerAlertBanner
             )}
             editLocationInDB={() => editLocationInAPI(
                 jsonBody,
                 locationName ?? 'location',
+                locationImageEntry,
                 setEditMode,
                 setExcludedListLocations,
-                setRefreshOnCloseModal
+                setRefreshOnCloseModal,
+                triggerAlertBanner,
             )}
+            doDeleteImageOnEdit={(!locationImageEntry && !imageUrl && locationImageWasPresent)}
+            deleteLocationImageInDB={() => deleteLocationImageInDB(
+                locationName ?? 'location',
+                locationType ?? 'PLACE',
+                triggerAlertBanner,
+            )}
+            anyDataPresent={isAnyDataPresent()}
+            anyDataChanged={isAnyDataChanged()}
         />
     </div>);
     
-    return <LocationModal 
-    modalHidden={isModalHidden}
-    modalOnClose={modalOnClose}
-    modalTitle={LocationModalTitle}
-    modalContent={LocationModalContent}
-    modalFooter={LocationModalFooter}
+    return <ViewLocationModal 
+        modalHidden={isModalHidden}
+        modalOnClose={modalOnClose}
+        modalTitle={LocationModalTitle}
+        modalContent={LocationModalContent}
+        modalFooter={LocationModalFooter}
     />
 
 }

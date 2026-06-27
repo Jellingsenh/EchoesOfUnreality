@@ -20,7 +20,7 @@ export default function SummaryInput({
     const [tempInputValue, setTempInputValue] = useState<string | null>(currentInput ?? '') // declare hooks at the top
 
     if (viewMode && (currentInput === null || currentInput === '')) {
-        return <></> // josh need to fix spacing still
+        return <></> // 
     }
 
     const actualInputValue:string|null = (tempInputValue !== '') ? tempInputValue : (currentInput ?? '')

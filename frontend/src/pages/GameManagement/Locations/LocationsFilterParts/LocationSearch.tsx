@@ -4,11 +4,9 @@ import { components } from "react-select"
 export function LocationSearch({
     searchStr,
     setSearchStr,
-    typeFilter,
 }:{
     searchStr: string | null,
     setSearchStr: React.Dispatch<React.SetStateAction<string | null>>,
-    typeFilter: string | null,
 }) {
     const [tempSearchStr, setTempSearchStr] = useState<string | null>(null)
     const searchValue: string | undefined = tempSearchStr ?? searchStr ?? undefined
@@ -19,7 +17,6 @@ export function LocationSearch({
     }}>
         <input
             style={{
-                marginLeft: (!typeFilter || typeFilter === 'SPACE' || typeFilter === 'GALAXY' || typeFilter === 'UNIVERSE' || typeFilter === 'DIMENSION') ? '0px' : '22px',
                 fieldSizing: 'content', 
                 minHeight: '21px',
                 maxHeight: '21px',
@@ -56,11 +53,13 @@ export function LocationSearch({
             setSearchStr('')
             setTempSearchStr(null)
         }}
+        tabIndex={0}
         style={{
             color: 'darkgrey',
             alignSelf: 'center',
             marginLeft: '-18px',
             marginBottom: '-1px',
+            cursor: 'pointer',
         }} 
         size={14}/>}
     </div>

@@ -1,12 +1,15 @@
-import { baseApiUrl } from "../../../../../resources/constants";
+import { baseApiUrl } from "../../../../resources/constants";
 import type { FullLocation } from "../LocationTypes/FullLocation";
+import saveLocationImageInAPI from "./saveLocationImageInAPI";
 
 export default function editLocationInAPI(
     jsonBody: FullLocation,
     locationName: string,
+    imageEntry: File | null,
     setEditMode: React.Dispatch<React.SetStateAction<'CREATE' | 'VIEW' | 'EDIT'>>,
     setExcludedListLocations: React.Dispatch<React.SetStateAction<{name: string, type: string}[]>>,
     setRefreshOnCloseModal: React.Dispatch<React.SetStateAction<boolean>>,
+    triggerAlertBanner: (content:string, type:'success'|'warning'|'error') => void,
 ) {
     if (!jsonBody._id) {
         console.error('No location id found for editing. Cannot edit location.')
@@ -27,26 +30,37 @@ export default function editLocationInAPI(
             signal, // Attach the signal to the fetch request
             },);
             const result = await res.json();
-            if (result._id) {
-                console.log('Successfully edited ' + locationName)
-                setEditMode('VIEW') 
-                setExcludedListLocations(prev => [...prev, {name: result.name, type: result.type}])
-                setRefreshOnCloseModal(true)
+            if (res.ok) {
+                if (result._id) {
+                    if (result._id === 'DUPLICATE') {
+                        triggerAlertBanner(locationName + ' & ' + jsonBody?.type + ' is not a unique name & type.', 'warning')
+                    } else {
+                        setEditMode('VIEW') 
+                        setExcludedListLocations(prev => [...prev, {name: result.name, type: result.type}])
+                        setRefreshOnCloseModal(true)
+                        if (imageEntry) { // save image 
+                            // console.log('editing complete, adding new image for', result.name, result.type)
+                            const imageForm = new FormData();
+                            imageForm.append('image', imageEntry) 
+                            saveLocationImageInAPI(result.name, result.type, imageForm, triggerAlertBanner)
+                        }
+                        triggerAlertBanner('Successfully edited ' + locationName + '.', 'success')
+                    }
+                }
             } else {
-                // josh add banner for error?
-                console.error('Res error editing data:', res.statusText);
-            } 
+                triggerAlertBanner('Error editing ' + locationName + '.', 'error')
+                return
+            }
         } catch (error: any) {
             if (error.name === 'AbortError') {
             // console.log('Request was canceled intentionally.');
             return; // Gracefully exit
             }
-            // setEditMode('EDIT') 
-            console.error('Error editing data:', error);
+            triggerAlertBanner('Error editing ' + locationName + '.', 'error')
+            console.error(error);
         } finally {
             // clearTimeout(timeoutId);
         }
     }
-
     editLocation()
 }

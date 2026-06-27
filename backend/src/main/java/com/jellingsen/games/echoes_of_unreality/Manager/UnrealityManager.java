@@ -1,11 +1,18 @@
 package com.jellingsen.games.echoes_of_unreality.Manager;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Vector;
+
+import org.bson.types.ObjectId;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.util.Comparator;
 
 import com.jellingsen.games.echoes_of_unreality.API.Filters.LocationFilterOptions;
 import com.jellingsen.games.echoes_of_unreality.Components.Character.NPC;
 import com.jellingsen.games.echoes_of_unreality.Components.Character.PlayableCharacter;
+import com.jellingsen.games.echoes_of_unreality.Components.Helpers.ImageStorer;
 import com.jellingsen.games.echoes_of_unreality.Components.Helpers.Randomizer;
 import com.jellingsen.games.echoes_of_unreality.Components.Location.CompressedLocation;
 import com.jellingsen.games.echoes_of_unreality.Components.Location.Location;
@@ -19,9 +26,11 @@ import com.jellingsen.games.echoes_of_unreality.Database.DatabaseConnection;
 
 public class UnrealityManager {
     private DatabaseConnection databaseConnection;
+    private ImageStorer imageStorer;
 
     public UnrealityManager() {
         this.databaseConnection = new DatabaseConnection();
+        this.imageStorer = new ImageStorer();
     }  
 
     // HEALTH CHECK //
@@ -564,6 +573,8 @@ public class UnrealityManager {
     }
 
     private LocationNature inheritNatureFromParent(LocationNature parentNature, LocationModifier currentModifier) {
+        if (parentNature == null) return null;
+
         if (LocationModifier.DESERTED == currentModifier) { // modidy by this location's modifier
             // josh potential llm
             parentNature.breathable = false;
@@ -571,11 +582,16 @@ public class UnrealityManager {
         } else if (LocationModifier.VOLATILE == currentModifier) {
             // josh potential llm
             parentNature.breathable = true;
+            if (parentNature.environments == null) {
+                parentNature.environments = new Vector<String>();
+            }
             parentNature.environments.add("overgrown");
             parentNature.environments.add("dangerous");
         } else if (LocationModifier.EXTREME == currentModifier) {
-            for (int i = 0; i < parentNature.environments.size(); i++) {
-                parentNature.environments.set(i, "Extreme(ly) " + parentNature.environments.get(i));
+            if (parentNature.environments != null) {
+                for (int i = 0; i < parentNature.environments.size(); i++) {
+                    parentNature.environments.set(i, "Extreme(ly) " + parentNature.environments.get(i));
+                }
             }
         }
         return parentNature; // return now-modified parent nature
@@ -807,6 +823,8 @@ public class UnrealityManager {
         return locationToLink;
     }
 
+    // SAVING, EDITING, & DELETING
+
     public Location saveLocationToDatabase(Location location) {
         if (location == null) {
             System.out.println("Error: Cannot save null location");
@@ -815,6 +833,12 @@ public class UnrealityManager {
         if (location.name == null || location.name.length() == 0 || location.type == null) {
             System.out.println("Error: Cannot save location with missing or empty name or type");
             return null;
+        }
+
+        if (databaseConnection.isLocationInCollection(location.name, location.type)) {
+            System.out.println("> Can not create a new location with name " + location.name + " & type " + location.type + ", a location with that name and type already exists.");
+            location._id = "DUPLICATE"; // will be ignored by frontend after a warning is showed
+            return location;
         }
 
         return databaseConnection.createNewLocationSave(updateRelatives(location, false));
@@ -834,7 +858,29 @@ public class UnrealityManager {
             return null; // can't edit a location that isn't in the database
         }
 
-        return databaseConnection.updateLocationSave(updateRelatives(location, false));
+        ObjectId locationId = new ObjectId(location._id);
+        CompressedLocation oldLocationNameAndType = databaseConnection.getLocationsOldNameAndType(locationId);
+        if (oldLocationNameAndType == null) {
+            System.out.println("> Can not update location with id " + locationId + ", no location with that id exists.");
+            return null;
+        }
+
+        String oldName = oldLocationNameAndType.name;
+        LocationType oldType = oldLocationNameAndType.type;
+        boolean nameChanged = !(oldName.equals(location.name) && oldType.equals(location.type));
+
+        if (nameChanged && databaseConnection.isLocationInCollection(location.name, location.type)) { // if name changed & new name exists already
+            System.out.println("> Can not edit location with name " + oldName + " & type " + oldType + " to have new name " + location.name + " & type " + location.type + ", a location with that name and type already exists.");
+            location._id = "DUPLICATE"; // will be ignored by frontend after a warning is showed
+            return location;
+        }
+
+        if (nameChanged) { // change file name
+            String oldImageFileName = databaseConnection.getImageFilepathFromLocation(oldName, oldType);
+            imageStorer.changeImageFileName(oldImageFileName, location.name, location.type);
+        }
+
+        return databaseConnection.updateLocationSave(updateRelatives(location, false), locationId);
     }
 
     public boolean deleteLocationFromDatabase(Location location) {
@@ -851,6 +897,7 @@ public class UnrealityManager {
             return false;
         }
 
+        deleteImage(location.name, location.type);
         updateRelatives(location, true);
         return databaseConnection.deleteLocationSave(location._id, location.name);
     }
@@ -859,11 +906,49 @@ public class UnrealityManager {
         if (loc == null) return null;
         // sort children before returning
         Location location = databaseConnection.getLocation(loc.name, loc.type);
-        if (location != null && location.children != null) {
-            location.children = sortLocationsChildren(location.children);
+        if (location != null) {
+            if (location.children != null) {
+                location.children = sortLocationsChildren(location.children);
+            }
         }
         return location;
     }
+
+    // IMAGES
+
+    public ResponseEntity<String> addImage(String name, LocationType type, MultipartFile imageFile) {
+        // System.out.println("~~~ Saving image for " + name);
+        if (imageFile != null && !imageFile.isEmpty()) {
+            String newImageFilepath = imageStorer.saveImage(imageFile, name, type.toString());
+            if (databaseConnection.addImageFilepathToLocation(name, type, newImageFilepath)) {
+                String printStr = "Image for " + name + " saved";
+                // System.out.println(printStr);
+                return ResponseEntity.ok(printStr);
+            }
+        }
+        return ResponseEntity.badRequest().body("Image not saved");
+    }
+
+    public ResponseEntity<byte[]> getImage(String name, LocationType type) {
+        String imageFilepath = databaseConnection.getImageFilepathFromLocation(name, type);
+        if (imageFilepath != null && !imageFilepath.isEmpty()) {
+            return imageStorer.retreiveImage(imageFilepath);
+        }
+        return ResponseEntity.ok().body("NOIMAGE".getBytes(StandardCharsets.UTF_8)); // NOIMAGE
+    }
+
+    public ResponseEntity<String> deleteImage(String name, LocationType type) {
+        // System.out.println("~~~ Deleting image for " + name);
+        if (imageStorer.deleteImage(databaseConnection.deleteImageFromLocation(name, type))) {
+            String printStr = "Image for " + name + " deleted";
+            // System.out.println(printStr);
+            return ResponseEntity.ok(printStr);
+        } else {
+            return ResponseEntity.badRequest().body("Image for " + name + " not deleted");
+        }
+    }
+
+    // RELATIVES
 
     private Vector<CompressedLocation> sortLocationsChildren(Vector<CompressedLocation> children) {
         if (children == null) { return null; }

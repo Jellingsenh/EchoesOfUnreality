@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { baseApiUrl } from "../../../../../resources/constants";
+import { baseApiUrl } from "../../../../resources/constants";
 
 export default function getMoreLocationsFromAPI(
     offset: number,

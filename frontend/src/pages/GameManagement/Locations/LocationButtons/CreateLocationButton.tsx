@@ -22,6 +22,7 @@ export default function CreateLocationButton({
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
+            cursor: 'pointer',
           }}
           onClick={() => {
             // e.stopPropagation() // this stops the clickOut event

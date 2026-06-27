@@ -6,6 +6,9 @@ body {
     margin: 0;
 }
 
+
+/* animations */
+
 .loading {
     width: 20px;
     height: 20px;
@@ -52,6 +55,9 @@ body {
 /* .testborder {
     border: 2px solid red;
 } */
+
+
+/* hide scrollbar */
 
 .no-scrollbar {
     /* IE and Edge */

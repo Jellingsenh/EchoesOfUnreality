@@ -40,7 +40,7 @@ export default function NameInput({
             size='small'
             sx={{
             // minWidth: 180,
-            // Root text color // JOSH HERE FINISH COLORS THEN KEEP SETTIN GUP
+            // Root text color // JOSH TODO FINISH COLORS THEN KEEP SETTIN GUP
             // input: { color: 'blue' },
             // Label color
             // '& .MuiInputLabel-root': { color: 'blue' }, 

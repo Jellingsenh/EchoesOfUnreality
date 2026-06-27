@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { baseWebUrl } from './resources/constants'
+import { baseWebUrl } from './src/resources/constants'
 
 // https://vite.dev/config/
 export default defineConfig({

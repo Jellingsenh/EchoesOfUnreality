@@ -2,7 +2,7 @@ import OutlinedDiv from "../../../../components/OutlinedDiv";
 import LockInputButton from "../../../../components/LockInputButton";
 import { useEffect } from "react";
 import ViewDiscoverRemoveButton from "../LocationButtons/ViewDiscoverRemoveButton";
-import { setFirstLetterUpperCase } from "../../../../components/helpers/TextHelpers";
+import { setFirstLetterUpperCase } from "../../../../helpers/textHelpers";
 import { discoverNewLocation } from "../LocationsHelpers/discoverNewLocation";
 import GenerateLocationButton from "../LocationButtons/GenerateLocationButton";
 
@@ -27,6 +27,7 @@ export default function ChildrenSection({
     parentType,
     // endOfList,
     setRefreshOnCloseModal,
+    triggerAlertBanner,
 }:{
     currentChildren: { name: string, type: string; charted: boolean }[] | null,
     setCurrentChildren: React.Dispatch<React.SetStateAction<{ name: string, type: string; charted: boolean }[] | null>>,
@@ -48,6 +49,7 @@ export default function ChildrenSection({
     parentType: string | null,
     // endOfList: boolean,
     setRefreshOnCloseModal: React.Dispatch<React.SetStateAction<boolean>>,
+    triggerAlertBanner: (content:string, type:'success'|'warning'|'error') => void,
 }) {
     function chooseNewChild() {
         setChooseLocationModalParentMode(false)
@@ -71,7 +73,7 @@ export default function ChildrenSection({
     const anyChildrenPresent = (currentChildren && currentChildren.length > 0)
 
     if (viewMode && !anyChildrenPresent) {
-        return <></> // josh need to fix spacing still
+        return <></> // 
     }
 
     function viewChild(child: { name: string, type: string; charted: boolean }) {
@@ -85,7 +87,7 @@ export default function ChildrenSection({
             name: parentName,
             type: parentType,
         }
-        discoverNewLocation(child, currentLoc, setRefreshOnCloseModal)
+        discoverNewLocation(child, currentLoc, setRefreshOnCloseModal, triggerAlertBanner)
     }
 
     function removeChild(child: { name: string, type: string; charted: boolean }) { 
@@ -215,11 +217,12 @@ export default function ChildrenSection({
                     {!viewMode && !currentInputLocked && <div style={{
                         display: 'flex',
                         gap: '5px',
-                        marginTop: anyChildrenPresent ? '10px' : '0px',
+                        marginTop: anyChildrenPresent ? '8px' : '0px',
                         marginLeft: '5px',
                     }}>
                         <button style={{
                             minWidth: 'max-content',
+                            cursor: 'pointer',
                             // overflowX: 'auto',
                             // alignSelf: 'center',
                         }}

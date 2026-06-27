@@ -34,11 +34,13 @@ export default function ViewDiscoverRemoveButton({
             } 
             style={{
                 alignSelf: 'center',
+                cursor: 'pointer',
             }}>
                 {currentInputCharted ? 'View' : 'Discover'}
             </button> :
              <button style={{
                 alignSelf: 'center',
+                cursor: 'pointer',
             }}
             onClick={removeThisOne}>
                 {'Remove'}

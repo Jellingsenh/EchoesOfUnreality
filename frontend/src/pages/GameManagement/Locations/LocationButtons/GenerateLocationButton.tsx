@@ -1,4 +1,4 @@
-import { baseApiUrl } from "../../../../../resources/constants";
+import { baseApiUrl } from "../../../../resources/constants";
 
 export default function GenerateLocationButton({
     closeModal2, // will be null unless modal 2 open
@@ -95,6 +95,7 @@ export default function GenerateLocationButton({
 
     return <button style={{
         minWidth: 'max-content',
+        cursor: 'pointer',
     }}
     onClick={() => {
         if (parentMode) {
