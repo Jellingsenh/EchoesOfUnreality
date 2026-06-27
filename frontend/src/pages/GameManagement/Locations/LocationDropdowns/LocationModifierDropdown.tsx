@@ -4,6 +4,7 @@ import InputLabel from "@mui/material/InputLabel"
 import Select from "@mui/material/Select"
 import MenuItem from "@mui/material/MenuItem"
 import LockInputButton from "../../../../components/LockInputButton"
+import { NONE, CONTRARY, DISORDERED, DESERTED, VOLATILE, EXTREME, UNREAL } from "../../../../resources/constants"
 
 export default function LocationModifierDropdown({
     currentInput,
@@ -47,7 +48,7 @@ export default function LocationModifierDropdown({
             <Select
                 labelId={`modifier-label`}
                 id={'modifier'}
-                value={currentInput ?? 'NONE'}
+                value={currentInput ?? NONE}
                 onChange={(input) => {
                     setCurrentInput(input.target.value)
                 }}
@@ -64,13 +65,13 @@ export default function LocationModifierDropdown({
                 slotProps={{ input: { readOnly: currentInputLocked || viewMode } }} 
                 IconComponent={ (currentInputLocked || viewMode) ? () => null : undefined } // Removes icon
             >
-            <MenuItem value={'NONE'}>None</MenuItem>
-            <MenuItem value={'CONTRARY'}>Contrary</MenuItem>
-            <MenuItem value={'DISORDERED'}>Disordered</MenuItem>
-            <MenuItem value={'DESERTED'}>Deserted</MenuItem>
-            <MenuItem value={'VOLATILE'}>Volatile</MenuItem>
-            <MenuItem value={'EXTREME'}>Extreme</MenuItem>
-            <MenuItem value={'UNREAL'}>Unreal</MenuItem>
+            <MenuItem value={NONE}>None</MenuItem>
+            <MenuItem value={CONTRARY}>Contrary</MenuItem>
+            <MenuItem value={DISORDERED}>Disordered</MenuItem>
+            <MenuItem value={DESERTED}>Deserted</MenuItem>
+            <MenuItem value={VOLATILE}>Volatile</MenuItem>
+            <MenuItem value={EXTREME}>Extreme</MenuItem>
+            <MenuItem value={UNREAL}>Unreal</MenuItem>
             </Select>
         </FormControl>
     </div>

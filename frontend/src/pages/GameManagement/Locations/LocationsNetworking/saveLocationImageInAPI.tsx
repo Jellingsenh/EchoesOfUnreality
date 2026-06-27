@@ -1,10 +1,10 @@
-import { baseApiUrl } from "../../../../resources/constants";
+import { baseApiUrl, ERROR, type bannerAlertType } from "../../../../resources/constants";
 
 export default function saveLocationImageInAPI(
     locationName: string,
     locationType: string,
     apiBody: FormData,
-    triggerAlertBanner: (content:string, type:'success'|'warning'|'error') => void,
+    triggerAlertBanner: (content:string, type:bannerAlertType) => void,
 ) {
     const controller10 = new AbortController(); // stops api calls from happening 2x
     const { signal } = controller10;
@@ -21,18 +21,15 @@ export default function saveLocationImageInAPI(
             },);
             // const result = await res;
             if (res.status != 200) {
-                triggerAlertBanner('Error saving ' + locationName + ' image.', 'error')
+                triggerAlertBanner('Error saving ' + locationName + ' image.', ERROR)
                 return
             }
-            // if (result.ok) {
-            //     triggerAlertBanner('Successfully saved ' + locationName + ' image.', 'success')
-            // }
         } catch (error: any) {
             if (error.name === 'AbortError') {
                 // console.log('Request was canceled intentionally.');
                 return; // Gracefully exit
             }
-            triggerAlertBanner('Error saving ' + locationName + ' image.', 'error')
+            triggerAlertBanner('Error saving ' + locationName + ' image.', ERROR)
             console.error(error);
         } finally {
             // clearTimeout(timeoutId);

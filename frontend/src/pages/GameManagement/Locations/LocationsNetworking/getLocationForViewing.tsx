@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { baseApiUrl } from "../../../../resources/constants";
+import { baseApiUrl, NOIMAGE, NONE, PLACE, STANDARD } from "../../../../resources/constants";
 
 export default function getLocationForViewing(
     createMode: boolean,
@@ -45,10 +45,10 @@ export default function getLocationForViewing(
         if (createMode) {
             setLocationId(null)
             setLocationName(null)
-            setLocationType('PLACE')
+            setLocationType(PLACE)
             setLocationAppearance(null)
-            setLocationModifier('NONE')
-            setLocationSize('STANDARD')
+            setLocationModifier(NONE)
+            setLocationSize(STANDARD)
             setLocationNatureBreathable(null)
             setLocationNatureGravity(null)
             setLocationNatureEnvironments(null)
@@ -87,7 +87,7 @@ export default function getLocationForViewing(
 
                         const imageBlobText = await imageBlob.text()
                         // console.log('got image:', imageBlob.text())
-                        if ('NOIMAGE' !== imageBlobText) {
+                        if (NOIMAGE !== imageBlobText) {
                             setLocationImageWasPresent(true) // found image this load
                             setImageUrl(URL.createObjectURL(imageBlob))
                         }

@@ -4,6 +4,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import type { SnackbarCloseReason } from "@mui/material/Snackbar";
 import Snackbar from "@mui/material/Snackbar";
 import type { SyntheticEvent } from "react";
+import type { bannerAlertType } from "../resources/constants";
 
 export default function TimedAlertBanner({
     bannerOpen,
@@ -14,7 +15,7 @@ export default function TimedAlertBanner({
     bannerOpen: boolean,
     setBannerOpen: React.Dispatch<React.SetStateAction<boolean>>,
     alertContent: string | null,
-    alertType:'success'|'warning'|'error',
+    alertType:bannerAlertType,
 }) {
     if (!alertContent) return <></>
     

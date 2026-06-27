@@ -1,10 +1,10 @@
-import { baseApiUrl } from "../../../../resources/constants";
+import { baseApiUrl, ERROR, type bannerAlertType } from "../../../../resources/constants";
 
 export default function deleteLocationImageInDB(
     locationName: string,
     locationType: string,
     // apiBody: FormData,
-    triggerAlertBanner: (content:string, type:'success'|'warning'|'error') => void,
+    triggerAlertBanner: (content:string, type:bannerAlertType) => void,
 ) {
     const controller10 = new AbortController(); // stops api calls from happening 2x
     const { signal } = controller10;
@@ -21,7 +21,7 @@ export default function deleteLocationImageInDB(
             },);
             // const result = await res;
             if (res.status != 200) {
-                triggerAlertBanner('Error deleting ' + locationName + ' image.', 'error')
+                triggerAlertBanner('Error deleting ' + locationName + ' image.', ERROR)
                 return
             }
         } catch (error: any) {
@@ -29,7 +29,7 @@ export default function deleteLocationImageInDB(
                 // console.log('Request was canceled intentionally.');
                 return; // Gracefully exit
             }
-            triggerAlertBanner('Error deleting ' + locationName + ' image.', 'error')
+            triggerAlertBanner('Error deleting ' + locationName + ' image.', ERROR)
             console.error(error);
         } finally {
             // clearTimeout(timeoutId);

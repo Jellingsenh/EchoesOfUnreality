@@ -1,4 +1,4 @@
-import { baseApiUrl } from "../../../../resources/constants";
+import { baseApiUrl, DUPLICATE, ERROR, SUCCESS, VIEW, WARNING, type bannerAlertType, type editType } from "../../../../resources/constants";
 import type { FullLocation } from "../LocationTypes/FullLocation";
 import saveLocationImageInAPI from "./saveLocationImageInAPI";
 
@@ -6,10 +6,10 @@ export default function editLocationInAPI(
     jsonBody: FullLocation,
     locationName: string,
     imageEntry: File | null,
-    setEditMode: React.Dispatch<React.SetStateAction<'CREATE' | 'VIEW' | 'EDIT'>>,
+    setEditMode: React.Dispatch<React.SetStateAction<editType>>,
     setExcludedListLocations: React.Dispatch<React.SetStateAction<{name: string, type: string}[]>>,
     setRefreshOnCloseModal: React.Dispatch<React.SetStateAction<boolean>>,
-    triggerAlertBanner: (content:string, type:'success'|'warning'|'error') => void,
+    triggerAlertBanner: (content:string, type:bannerAlertType) => void,
 ) {
     if (!jsonBody._id) {
         console.error('No location id found for editing. Cannot edit location.')
@@ -32,10 +32,10 @@ export default function editLocationInAPI(
             const result = await res.json();
             if (res.ok) {
                 if (result._id) {
-                    if (result._id === 'DUPLICATE') {
-                        triggerAlertBanner(locationName + ' & ' + jsonBody?.type + ' is not a unique name & type.', 'warning')
+                    if (DUPLICATE === result._id) {
+                        triggerAlertBanner(locationName + ' & ' + jsonBody?.type + ' is not a unique name & type.', WARNING)
                     } else {
-                        setEditMode('VIEW') 
+                        setEditMode(VIEW) 
                         setExcludedListLocations(prev => [...prev, {name: result.name, type: result.type}])
                         setRefreshOnCloseModal(true)
                         if (imageEntry) { // save image 
@@ -44,11 +44,11 @@ export default function editLocationInAPI(
                             imageForm.append('image', imageEntry) 
                             saveLocationImageInAPI(result.name, result.type, imageForm, triggerAlertBanner)
                         }
-                        triggerAlertBanner('Successfully edited ' + locationName + '.', 'success')
+                        triggerAlertBanner('Successfully edited ' + locationName + '.', SUCCESS)
                     }
                 }
             } else {
-                triggerAlertBanner('Error editing ' + locationName + '.', 'error')
+                triggerAlertBanner('Error editing ' + locationName + '.', ERROR)
                 return
             }
         } catch (error: any) {
@@ -56,7 +56,7 @@ export default function editLocationInAPI(
             // console.log('Request was canceled intentionally.');
             return; // Gracefully exit
             }
-            triggerAlertBanner('Error editing ' + locationName + '.', 'error')
+            triggerAlertBanner('Error editing ' + locationName + '.', ERROR)
             console.error(error);
         } finally {
             // clearTimeout(timeoutId);

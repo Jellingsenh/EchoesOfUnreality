@@ -8,7 +8,8 @@ export default function LockInputButton({
     locked: boolean,
     setLocked: React.Dispatch<React.SetStateAction<boolean>>,
 }){
-    return <div style={{
+    return <div tabIndex={0}
+    style={{
         alignSelf: 'center',
         cursor: 'pointer',
         marginRight: '-7px',

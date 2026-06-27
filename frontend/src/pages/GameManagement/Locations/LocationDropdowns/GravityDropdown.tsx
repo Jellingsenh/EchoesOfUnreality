@@ -2,6 +2,7 @@ import FormControl from "@mui/material/FormControl"
 import InputLabel from "@mui/material/InputLabel"
 import Select from "@mui/material/Select"
 import MenuItem from "@mui/material/MenuItem"
+import { NONE, LOW, STANDARD, HIGH, SEVERE, SINGULARITY } from "../../../../resources/constants"
 
 export default function GravityDropdown({
     currentInput,
@@ -33,7 +34,7 @@ export default function GravityDropdown({
         <Select
             labelId={`gravity-label`}
             id={'gravity'}
-            value={currentInput ?? 'NONE'}
+            value={currentInput ?? NONE}
             onChange={(input) => {
                 setCurrentInput(input.target.value)
             }}
@@ -48,12 +49,12 @@ export default function GravityDropdown({
             slotProps={{ input: { readOnly: currentInputLocked || viewMode } }} 
             IconComponent={ (currentInputLocked || viewMode) ? () => null : undefined } // Removes icon
         >
-        <MenuItem value={'NONE'}>None</MenuItem>
-        <MenuItem value={'LOW'}>Low</MenuItem>
-        <MenuItem value={'STANDARD'}>Standard</MenuItem>
-        <MenuItem value={'HIGH'}>High</MenuItem>
-        <MenuItem value={'SEVERE'}>Severe</MenuItem>
-        <MenuItem value={'SINGULARITY'}>Singularity</MenuItem>
+        <MenuItem value={NONE}>None</MenuItem>
+        <MenuItem value={LOW}>Low</MenuItem>
+        <MenuItem value={STANDARD}>Standard</MenuItem>
+        <MenuItem value={HIGH}>High</MenuItem>
+        <MenuItem value={SEVERE}>Severe</MenuItem>
+        <MenuItem value={SINGULARITY}>Singularity</MenuItem>
         </Select>
     </FormControl>
 }

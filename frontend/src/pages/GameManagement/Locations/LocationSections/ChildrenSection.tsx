@@ -5,6 +5,7 @@ import ViewDiscoverRemoveButton from "../LocationButtons/ViewDiscoverRemoveButto
 import { setFirstLetterUpperCase } from "../../../../helpers/textHelpers";
 import { discoverNewLocation } from "../LocationsHelpers/discoverNewLocation";
 import GenerateLocationButton from "../LocationButtons/GenerateLocationButton";
+import type { bannerAlertType } from "../../../../resources/constants";
 
 export default function ChildrenSection({
     currentChildren,
@@ -49,7 +50,7 @@ export default function ChildrenSection({
     parentType: string | null,
     // endOfList: boolean,
     setRefreshOnCloseModal: React.Dispatch<React.SetStateAction<boolean>>,
-    triggerAlertBanner: (content:string, type:'success'|'warning'|'error') => void,
+    triggerAlertBanner: (content:string, type:bannerAlertType) => void,
 }) {
     function chooseNewChild() {
         setChooseLocationModalParentMode(false)

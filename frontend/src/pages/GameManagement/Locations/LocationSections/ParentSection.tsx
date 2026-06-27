@@ -5,6 +5,7 @@ import ViewDiscoverRemoveButton from "../LocationButtons/ViewDiscoverRemoveButto
 import { discoverNewLocation } from "../LocationsHelpers/discoverNewLocation";
 import GenerateLocationButton from "../LocationButtons/GenerateLocationButton";
 import { setFirstLetterUpperCase } from "../../../../helpers/textHelpers";
+import { PLACE, type bannerAlertType } from "../../../../resources/constants";
 
 export default function ParentSection({
     currentParentNameInput,
@@ -63,7 +64,7 @@ export default function ParentSection({
     childDisordered: boolean,
     // endOfList: boolean,
     setRefreshOnCloseModal: React.Dispatch<React.SetStateAction<boolean>>,
-    triggerAlertBanner: (content:string, type:'success'|'warning'|'error') => void,
+    triggerAlertBanner: (content:string, type:bannerAlertType) => void,
 }) {
     function chooseNewParent() {
         setChooseLocationModalParentMode(true)
@@ -187,7 +188,7 @@ export default function ParentSection({
                                         minWidth: 40, // keep label visible
                                         textAlign: 'center',
                                     }}>
-                                        {setFirstLetterUpperCase(currentParentTypeInput ?? newParentType ?? 'PLACE')}
+                                        {setFirstLetterUpperCase(currentParentTypeInput ?? newParentType ?? PLACE)}
                                     </div>
                                 </OutlinedDiv>
                             </div>
@@ -195,8 +196,8 @@ export default function ParentSection({
                                 currentInputLocked={currentInputLocked}
                                 currentInputCharted={currentChartedInput}
                                 setCurrentInputCharted={setCurrentChartedInput}
-                                viewThisOne={() => {viewParent({name: currentParentNameInput ?? newParentName ?? 'location', type: currentParentTypeInput ?? newParentType ?? 'PLACE', charted: currentChartedInput ?? false})}}
-                                discoverThisOne={() => discoverParent({name: currentParentNameInput ?? newParentName ?? 'location', type: currentParentTypeInput ?? newParentType ?? 'PLACE', charted: currentChartedInput ?? false})}
+                                viewThisOne={() => {viewParent({name: currentParentNameInput ?? newParentName ?? 'location', type: currentParentTypeInput ?? newParentType ?? PLACE, charted: currentChartedInput ?? false})}}
+                                discoverThisOne={() => discoverParent({name: currentParentNameInput ?? newParentName ?? 'location', type: currentParentTypeInput ?? newParentType ?? PLACE, charted: currentChartedInput ?? false})}
                                 removeThisOne={removeParent}
                                 viewMode={viewMode}
                             />

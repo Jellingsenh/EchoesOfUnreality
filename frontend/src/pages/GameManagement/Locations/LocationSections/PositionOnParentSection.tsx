@@ -1,6 +1,7 @@
 import TextField from "@mui/material/TextField";
 import LockInputButton from "../../../../components/LockInputButton";
 import OutlinedDiv from "../../../../components/OutlinedDiv";
+import { PLANET, STAR, MOON, FEATURE } from "../../../../resources/constants";
 
 export default function PositionOnParentSection({
     currentXInput,
@@ -24,10 +25,10 @@ export default function PositionOnParentSection({
     // createMode: boolean,
 }){
     var currentOrbitsParent = false;
-    if ('PLANET' === currentLocationType 
-     || 'STAR' === currentLocationType 
-     || 'MOON' === currentLocationType
-     || 'FEATURE' === currentLocationType) {
+    if (PLANET === currentLocationType 
+     || STAR === currentLocationType 
+     || MOON === currentLocationType
+     || FEATURE === currentLocationType) {
             currentOrbitsParent = true;
     }
 

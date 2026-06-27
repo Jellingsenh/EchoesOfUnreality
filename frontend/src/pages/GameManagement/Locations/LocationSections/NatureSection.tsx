@@ -4,6 +4,7 @@ import OutlinedDiv from "../../../../components/OutlinedDiv"
 import LockInputButton from "../../../../components/LockInputButton"
 import MaterialsInput from "../LocationInputs/MaterialsInput"
 import EnvironmentsInput from "../LocationInputs/EnvironmentsInput"
+import { BREATHABLE, NONE } from "../../../../resources/constants"
 
 export default function NatureSection({
     currentBreathableInput,
@@ -109,8 +110,8 @@ export default function NatureSection({
                     />
                     {(!currentMaterialInput || currentMaterialInput.length < 1) 
                     && (!currentEnvironmentInput || currentEnvironmentInput.length < 1) 
-                    && (!currentGravityInput || currentGravityInput === 'NONE') 
-                    && (!currentBreathableInput || currentGravityInput === 'BREATHABLE')
+                    && (!currentGravityInput || currentGravityInput === NONE) 
+                    && (!currentBreathableInput || currentGravityInput === BREATHABLE)
                     && !viewMode &&
                     <button style={{
                         alignSelf: 'center',
@@ -149,7 +150,7 @@ export default function NatureSection({
                     }}
                     onClick={() => {
                         setCurrentBreathableInput(false)
-                        setCurrentGravityInput('NONE')
+                        setCurrentGravityInput(NONE)
                         setCurrentEnvironmentInput([''])
                         setCurrentMaterialInput([''])
                     }}>

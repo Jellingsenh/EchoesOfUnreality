@@ -14,6 +14,7 @@ import LocationSizeDropdown from '../LocationDropdowns/LocationSizeDropdown';
 import LocationImageSection from '../LocationSections/LocationImageSection';
 import PositionOnParentSection from '../LocationSections/PositionOnParentSection';
 import getLocationForViewing from '../LocationsNetworking/getLocationForViewing';
+import { DISORDERED, type bannerAlertType } from '../../../../resources/constants';
 
 export default function ViewLocationModalContent({
    isMobile,
@@ -222,7 +223,7 @@ export default function ViewLocationModalContent({
    resetLocationFilters: () => void,
    // endOfList: boolean,
    setRefreshOnCloseModal: React.Dispatch<React.SetStateAction<boolean>>,
-   triggerAlertBanner: (content:string, type:'success'|'warning'|'error') => void,
+   triggerAlertBanner: (content:string, type:bannerAlertType) => void,
    imageUrl: string | null,
    setImageUrl: React.Dispatch<React.SetStateAction<string | null>>,
    locationImageEntry: File | null,
@@ -458,7 +459,7 @@ export default function ViewLocationModalContent({
                         removeFromExcludedListLocations={removeFromExcludedListLocations}
                         childName={locationName}
                         childType={locationType}
-                        childDisordered={'DISORDERED' ===  locationModifier}
+                        childDisordered={DISORDERED ===  locationModifier}
                         // endOfList={endOfList}
                         setRefreshOnCloseModal={setRefreshOnCloseModal}
                         triggerAlertBanner={triggerAlertBanner}

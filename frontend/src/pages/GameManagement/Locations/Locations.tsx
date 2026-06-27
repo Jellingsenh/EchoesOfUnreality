@@ -1,5 +1,5 @@
 import { StrictMode, useState } from "react"
-import { baseWebUrl } from "../../../resources/constants"
+import { baseWebUrl, DISORDERED, ERROR, SUCCESS, TIME, VIEW, type bannerAlertType, type editType } from "../../../resources/constants"
 import { Root } from "../../../Echoes"
 import WebPage from "../../../components/WebPage"
 import SpinningLoader from "../../../components/SpinningLoader"
@@ -36,7 +36,7 @@ function Locations() {
   const [searchStr, setSearchStr] = useState<string | null>('')
   const [typeFilter, setTypeFilter] = useState<string | null>(null) // PLACE, CITY, AREA, COUNTRY, CONTINENT, FEATURE, MOON, PLANET, STAR, SPACE, GALAXY, UNIVERSE, or DIMENSION
   const [breathableFilter, setBreathableFilter] = useState<string | null>(null) // BREATHABLE or UNBREATHABLE
-  const [sortBy, setSortBy] = useState('TIME') // NAME, TYPE, or TIME
+  const [sortBy, setSortBy] = useState(TIME) // NAME, TYPE, or TIME
   const [descending, setDescending] = useState(true)
   const [doRefresh, setDoRefresh] = useState(false)
   const [refreshOnCloseModal, setRefreshOnCloseModal] = useState(false) 
@@ -44,16 +44,16 @@ function Locations() {
       ('' === searchStr)
       && (typeFilter === null)      
       && (breathableFilter === null)
-      && (sortBy === 'TIME')
+      && (sortBy === TIME)
       && descending)
 
   // BANNER ARGUMENTS
   const [alertBannerOpen, setAlertBannerOpen] = useState(false);
   const [alertContent, setAlertContent] = useState<string|null>(null);
-  const [alertType, setAlertType] = useState<'success'|'warning'|'error'>('success');
+  const [alertType, setAlertType] = useState<bannerAlertType>(SUCCESS);
 
   // MODAL 1 ARGUMENTS
-  const [editMode, setEditMode] = useState<'VIEW' | 'EDIT' | 'CREATE'>('VIEW') 
+  const [editMode, setEditMode] = useState<editType>(VIEW) 
   const [isModalHidden, setModalHidden] = useState(true)
   const [nameLocked, setNameLocked] = useState(false)
   const [typeLocked, setTypeLocked] = useState(false)
@@ -116,7 +116,7 @@ function Locations() {
       setSearchStr('')
       setTypeFilter(null)
       setBreathableFilter(null)
-      setSortBy('TIME')
+      setSortBy(TIME)
       setDescending(true)
   }
 
@@ -129,10 +129,10 @@ function Locations() {
     setDoRefresh(prev => !prev)
   }
 
-  const triggerAlertBanner = (content:string, type:'success'|'warning'|'error') => {
-    if ('success' === type) {
+  const triggerAlertBanner = (content:string, type:bannerAlertType) => {
+    if (SUCCESS === type) {
       console.log(content)
-    } else if ('error' === type) {
+    } else if (ERROR === type) {
       console.error(content)
     } else { // warning
       console.warn(content)
@@ -161,7 +161,7 @@ function Locations() {
     setCurrentCompressedLocation(location)
     setExcludedListLocations([location])
 
-    setEditMode('VIEW')
+    setEditMode(VIEW)
 
     setNameLocked(true)
     setTypeLocked(true)
@@ -207,7 +207,7 @@ function Locations() {
       setParentChartedInput={setLocationParentCharted} // for parent
       setPositionInputLocked={setPositionLocked} // for parent
       childType={locationType} // for parent
-      childDisordered={'DISORDERED' === locationType} // for parent
+      childDisordered={DISORDERED === locationType} // for parent
       
       parentType={locationType} // for child
       setCurrentChildren={setLocationChildren} // for child

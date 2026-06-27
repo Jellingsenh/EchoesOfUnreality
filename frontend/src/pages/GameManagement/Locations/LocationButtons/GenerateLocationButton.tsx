@@ -1,4 +1,4 @@
-import { baseApiUrl } from "../../../../resources/constants";
+import { baseApiUrl, CITY, CONTINENT } from "../../../../resources/constants";
 
 export default function GenerateLocationButton({
     closeModal2, // will be null unless modal 2 open
@@ -39,7 +39,7 @@ export default function GenerateLocationButton({
             // console.log(' getting new parent...')
             // setNewParentLoading(true); // Start loading state
             try {
-                const res = await fetch(baseApiUrl + '/generateNewCompressedParent/' + (childType ?? 'CONTINENT') + '/' + (childDisordered ?? false), { 
+                const res = await fetch(baseApiUrl + '/generateNewCompressedParent/' + (childType ?? CONTINENT) + '/' + (childDisordered ?? false), { 
                     method: 'GET',
                     signal,
                 });
@@ -70,7 +70,7 @@ export default function GenerateLocationButton({
             // console.log(' getting new child...')
             // setNewParentLoading(true); // Start loading state
             try {
-                const res = await fetch(baseApiUrl + '/generateNewCompressedChild/' + (parentType ?? 'CITY'), {
+                const res = await fetch(baseApiUrl + '/generateNewCompressedChild/' + (parentType ?? CITY), {
                     method: 'GET',
                     signal,
                 });

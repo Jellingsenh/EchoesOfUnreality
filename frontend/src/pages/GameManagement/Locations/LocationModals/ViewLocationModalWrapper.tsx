@@ -13,6 +13,7 @@ import deleteLocationInAPI from "../LocationsNetworking/deleteLocationInAPI";
 import editLocationInAPI from "../LocationsNetworking/editLocationInAPI";
 import ViewLocationModal from "./ViewLocationModal";
 import deleteLocationImageInDB from "../LocationsNetworking/deleteLocationImageInDB";
+import { PLACE, STANDARD, NONE, type editType, CREATE, EDIT, VIEW, type bannerAlertType } from "../../../../resources/constants";
 
 export default function ViewLocationModalWrapper ({
     isMobile,
@@ -60,8 +61,8 @@ export default function ViewLocationModalWrapper ({
     isMobile: boolean,
     isModalHidden: boolean,
     setModalHidden: React.Dispatch<React.SetStateAction<boolean>>,
-    editMode: 'VIEW' | 'EDIT' | 'CREATE',
-    setEditMode: React.Dispatch<React.SetStateAction<'VIEW' | 'EDIT' | 'CREATE'>>,
+    editMode: editType,
+    setEditMode: React.Dispatch<React.SetStateAction<editType>>,
     currentCompressedLocation: {name: string, type: string} | null,
     setCurrentCompressedLocation: React.Dispatch<React.SetStateAction<{name: string, type: string} | null>>,
     setChooseLocationModalHidden: React.Dispatch<React.SetStateAction<boolean>>,
@@ -97,7 +98,7 @@ export default function ViewLocationModalWrapper ({
     resetLocationFilters: () => void,
     refreshOnCloseModal: boolean,
     setRefreshOnCloseModal: React.Dispatch<React.SetStateAction<boolean>>,
-    triggerAlertBanner: (content:string, type:'success'|'warning'|'error') => void,
+    triggerAlertBanner: (content:string, type:bannerAlertType) => void,
 }) {
     const[locationId, setLocationId] = useState<string | null>(null)
     const [locationName, setLocationName] = useState<string | null>(null)
@@ -146,7 +147,7 @@ export default function ViewLocationModalWrapper ({
         "name": locationName,
         "type": locationType,
         "size": locationSize,
-        "modifier": 'NONE' === locationModifier ? null : locationModifier,
+        "modifier": NONE === locationModifier ? null : locationModifier,
         "appearance": locationAppearance,
         "nature": {
             "breathable": locationNatureBreathable,
@@ -179,8 +180,8 @@ export default function ViewLocationModalWrapper ({
 
     const modalOnClose = (forceRefreshOnClose:boolean) => {
         // warning about unsaved changes
-        if ((('CREATE' === editMode) && isAnyDataPresent())
-        || (('EDIT' === editMode) && isAnyDataChanged())) {
+        if (((CREATE === editMode) && isAnyDataPresent())
+        || ((EDIT === editMode) && isAnyDataChanged())) {
             if (!confirm('You have unsaved changes. Press OK to abandon them.\n\nPress Cancel and use the Save location button to save your changes.')) {
                 // console.log('Keeping modal open...')
                 return;
@@ -230,7 +231,7 @@ export default function ViewLocationModalWrapper ({
         setLocationName(result.name ?? null)
         setLocationType(result.type ?? null)
         setLocationSize(result.size ?? null)
-        setLocationModifier(result.modifier ?? 'NONE')
+        setLocationModifier(result.modifier ?? NONE)
         setLocationAppearance(result.appearance ?? null)
         setLocationNatureBreathable(result.nature?.breathable ?? null)
         setLocationNatureGravity(result.nature?.gravity ?? null)
@@ -302,16 +303,16 @@ export default function ViewLocationModalWrapper ({
 
         // resetLocationFilters() // only reset on 2nd modal open and close
         resetAllModalFields()
-        setEditMode('VIEW')
+        setEditMode(VIEW)
         setCurrentCompressedLocation(location)
     }
 
     function isAnyDataPresent(): boolean {
         // console.log('checking if any data is present...')
         return ((locationName && locationName.length > 0)
-            || (locationType && ('PLACE' !== locationType))
-            || (locationSize && ('STANDARD' !== locationSize))
-            || (locationModifier && 'NONE' !== locationModifier)
+            || (locationType && (PLACE !== locationType))
+            || (locationSize && (STANDARD !== locationSize))
+            || (locationModifier && NONE !== locationModifier)
             || (locationAppearance && locationAppearance.length > 0)
             || locationNatureBreathable 
             || (locationNatureGravity !== null)
@@ -388,7 +389,7 @@ export default function ViewLocationModalWrapper ({
         setLocationName(null)
         setLocationType(null)
         setLocationSize(null)
-        setLocationModifier('NONE')
+        setLocationModifier(NONE)
         setLocationAppearance(null)
         setLocationNatureBreathable(null)
         setLocationNatureGravity(null)
@@ -422,9 +423,9 @@ export default function ViewLocationModalWrapper ({
     const LocationModalTitle = (<div style={{
     minWidth: '200px',
     }}>
-        {editMode === 'CREATE' || currentCompressedLocation === null ? 
+        {CREATE === editMode || currentCompressedLocation === null ? 
         'Creating a new location' :  
-        (editMode === 'VIEW' ? 
+        (VIEW === editMode ? 
         'Viewing ' : 
         'Editing ') + 
         (locationName ?? 'location')}
@@ -434,8 +435,8 @@ export default function ViewLocationModalWrapper ({
     const LocationModalContent = (<ViewLocationModalContent
         isMobile={isMobile}
         currentLocation={currentCompressedLocation} 
-        viewMode={editMode === 'VIEW'}
-        createMode={editMode === 'CREATE'}
+        viewMode={VIEW === editMode}
+        createMode={CREATE === editMode}
         selectNewLocationForViewing={selectNewLocationForViewing}
         // editMode={editMode} 
         // setEditMode={setEditMode} 
@@ -561,7 +562,7 @@ export default function ViewLocationModalWrapper ({
         overflowX: 'auto',
     }}>
         {/* VIEW IN MAP */}
-        {editMode === 'EDIT' ? 
+        {EDIT === editMode ? 
         <DeleteLocationButton 
             currentLocationName={locationName ?? 'location'} 
             deleteLocationFromDB={() => deleteLocationInAPI(
@@ -573,7 +574,7 @@ export default function ViewLocationModalWrapper ({
         /> :
         <ViewInMapButton 
             currentLocationName={locationName ?? 'location'} 
-            viewMode={editMode === 'VIEW'}
+            viewMode={VIEW === editMode}
         />}
         <div style={{
             // border:'1px solid green', // spacer div
@@ -587,11 +588,11 @@ export default function ViewLocationModalWrapper ({
             allInputsUnlocked={lockedListLength === 0}
             unlockAllInputs={unlockAllInputs}
             lockAllInputs={lockAllInputs}
-            viewMode={editMode === 'VIEW'}
+            viewMode={VIEW === editMode}
         />
         {/* RANDOMIZE UNLOCKED */}
         <RandomizeUnlockedButton 
-            viewMode={editMode === 'VIEW'}
+            viewMode={VIEW === editMode}
             allFieldsUnlocked={lockedListLength === 0}
             allFieldsLocked={lockedListLength === 12}
             randomizeUnlockedFields={() => randomizeLocationInAPI(
@@ -605,12 +606,12 @@ export default function ViewLocationModalWrapper ({
         {/* SET CURRENT */}
         <SetCurrentButton 
             currentLocationName={locationName ?? 'location'}
-            viewMode={editMode === 'VIEW'}
+            viewMode={VIEW === editMode}
         />
         {/* EDIT/SAVE */}
         <EditSaveButton 
-            viewMode={editMode === 'VIEW'}
-            createMode={editMode === 'CREATE'}
+            viewMode={VIEW === editMode}
+            createMode={CREATE === editMode}
             locationName={locationName}
             // currentLocationName={locationName ?? 'location'}
             setEditMode={setEditMode}
@@ -641,7 +642,7 @@ export default function ViewLocationModalWrapper ({
             doDeleteImageOnEdit={(!locationImageEntry && !imageUrl && locationImageWasPresent)}
             deleteLocationImageInDB={() => deleteLocationImageInDB(
                 locationName ?? 'location',
-                locationType ?? 'PLACE',
+                locationType ?? PLACE,
                 triggerAlertBanner,
             )}
             anyDataPresent={isAnyDataPresent()}

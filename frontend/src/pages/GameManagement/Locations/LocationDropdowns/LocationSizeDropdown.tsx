@@ -3,6 +3,7 @@ import InputLabel from "@mui/material/InputLabel"
 import Select from "@mui/material/Select"
 import MenuItem from "@mui/material/MenuItem"
 import LockInputButton from "../../../../components/LockInputButton"
+import { SMALL, STANDARD, HUGE, MASSIVE } from "../../../../resources/constants"
 
 export default function LocationSizeDropdown({
     currentInput,
@@ -63,10 +64,10 @@ export default function LocationSizeDropdown({
                 slotProps={{ input: { readOnly: currentInputLocked || viewMode } }} 
                 IconComponent={ (currentInputLocked || viewMode) ? () => null : undefined } // Removes icon
             >
-            <MenuItem value={'SMALL'}>Small</MenuItem>
-            <MenuItem value={'STANDARD'}>Standard</MenuItem>
-            <MenuItem value={'HUGE'}>Huge</MenuItem>
-            <MenuItem value={'MASSIVE'}>Massive</MenuItem>
+                <MenuItem value={SMALL}>Small</MenuItem>
+                <MenuItem value={STANDARD}>Standard</MenuItem>
+                <MenuItem value={HUGE}>Huge</MenuItem>
+                <MenuItem value={MASSIVE}>Massive</MenuItem>
             </Select>
         </FormControl>
     </div>

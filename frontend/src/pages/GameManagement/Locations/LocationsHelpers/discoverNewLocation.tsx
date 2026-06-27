@@ -1,11 +1,11 @@
-import { baseApiUrl } from "../../../../resources/constants";
+import { baseApiUrl, ERROR, SUCCESS, type bannerAlertType } from "../../../../resources/constants";
 
 export function discoverNewLocation(
     unchartedLocation: { name: string, type: string; charted: boolean },
     currentLocation: { name: string, type: string; },
     // endOfList: boolean,
     setRefreshOnCloseModal: React.Dispatch<React.SetStateAction<boolean>>,
-    triggerAlertBanner: (content:string, type:'success'|'warning'|'error') => void,
+    triggerAlertBanner: (content:string, type:bannerAlertType) => void,
 ) {
     if (!location || !currentLocation || unchartedLocation.charted) return // only discover uncharted locations
 
@@ -22,16 +22,16 @@ export function discoverNewLocation(
             });
             const result:boolean = await res.json();
             if (res.status != 200) {
-                triggerAlertBanner('Error discovering ' + unchartedLocation.name + '.', 'error')
+                triggerAlertBanner('Error discovering ' + unchartedLocation.name + '.', ERROR)
                 return
             }
             if (result) {
-                triggerAlertBanner('Successfully discovered ' + unchartedLocation.name + '.', 'success')
+                triggerAlertBanner('Successfully discovered ' + unchartedLocation.name + '.', SUCCESS)
                 setRefreshOnCloseModal(true);
             } 
         } catch (error: any) {
             if (error.name === 'AbortError') return
-            triggerAlertBanner('Error discovering ' + unchartedLocation.name + '.', 'error')
+            triggerAlertBanner('Error discovering ' + unchartedLocation.name + '.', ERROR)
             console.error(error);
         } 
     }

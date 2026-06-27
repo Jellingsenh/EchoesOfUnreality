@@ -1,3 +1,5 @@
+import { EDIT, type editType } from "../../../../resources/constants"
+
 export default function EditSaveButton({
     viewMode,
     createMode,
@@ -17,7 +19,7 @@ export default function EditSaveButton({
     createMode: boolean,
     locationName: string | null,
     // currentLocationName: string | null,
-    setEditMode: (mode: 'VIEW' | 'EDIT' | 'CREATE') => void,
+    setEditMode: (mode:editType) => void,
     setNameAndTypeLocked: () => void,
     takeLocationSnapshot: () => void,
     saveLocationToDB: () => void,
@@ -38,7 +40,7 @@ export default function EditSaveButton({
     }}
     onClick={() => {
         if (viewMode) {
-            setEditMode('EDIT')
+            setEditMode(EDIT)
             setNameAndTypeLocked()
             takeLocationSnapshot()
         } else {

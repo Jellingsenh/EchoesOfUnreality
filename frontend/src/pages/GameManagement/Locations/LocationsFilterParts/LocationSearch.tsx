@@ -60,6 +60,7 @@ export function LocationSearch({
             marginLeft: '-18px',
             marginBottom: '-1px',
             cursor: 'pointer',
+            outline: 'none',
         }} 
         size={14}/>}
     </div>

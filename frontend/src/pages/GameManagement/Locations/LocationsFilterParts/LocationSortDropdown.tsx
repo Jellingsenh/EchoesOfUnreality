@@ -1,6 +1,7 @@
 import Select, { components } from "react-select"
 import type { valueLabel } from "../LocationTypes/ValueLabel"
 import { useState } from "react"
+import { NAME, TIME, TYPE } from "../../../../resources/constants"
 
 export function LocationSortDropdown({
     sortBy,
@@ -16,14 +17,14 @@ export function LocationSortDropdown({
     const [sortByPicked, setSortByPicked] = useState(false)
 
     const sortOptions: valueLabel[] = [
-        { value: 'NAME', label: 'Name' },
-        { value: 'TYPE', label: 'Type' },
-        { value: 'TIME', label: 'Most recent' }
+        { value: NAME, label: 'Name' },
+        { value: TYPE, label: 'Type' },
+        { value: TIME, label: 'Most recent' }
       ]
 
-    const sortValue: valueLabel = (sortBy === 'NAME') ? 
+    const sortValue: valueLabel = (NAME === sortBy) ? 
         sortOptions[0] : 
-        (sortBy === 'TYPE') ? 
+        (sortBy === TYPE) ? 
             sortOptions[1] : 
             sortOptions[2] // TIME
 
@@ -42,13 +43,9 @@ export function LocationSortDropdown({
                     ...base,
                     alignContent: 'center',
                     border: 'none',
-                    // boxShadow: 'none', // remove blue focus (might need to change for accessibility)
+                    boxShadow: 'none', // remove blue focus (might need to change for accessibility)
                     transition: 'width 0.3s ease',
                     minWidth: 'max-content',
-                    // width: !sortByPicked ? '40px' :
-                    //         sortBy === 'NAME' ? '55px' : 
-                    //         sortBy === 'TYPE' ? '50px' : 
-                    //         '85px', // TIME
                     minHeight: '25px',
                     fontSize: '0.8rem',
                     textAlign: 'center',
@@ -64,8 +61,8 @@ export function LocationSortDropdown({
                     marginTop: '3px',
                     // transition: 'marginLeft 0.2s ease',
                     marginLeft: !sortByPicked ? '8px' : 
-                            sortBy === 'NAME' ? '-8px' : 
-                            sortBy === 'TYPE' ? '-9px' : 
+                            NAME === sortBy ? '-8px' : 
+                            TYPE === sortBy ? '-9px' : 
                             '8px', // TIME
                     fontSize: '0.7rem',
                 }),
@@ -90,7 +87,7 @@ export function LocationSortDropdown({
                 // }),
             }}
             onChange={(i) => {
-                setSortBy(i?.value ?? 'TIME')
+                setSortBy(i?.value ?? TIME)
                 setSortByPicked(true)
             }}
             isSearchable={false}
@@ -112,6 +109,7 @@ export function LocationSortDropdown({
             color: '#666',
             display: 'flex',
             alignItems: 'center',
+            boxShadow: 'none',
         }}>
             <div style={{
                 display: 'flex',
@@ -121,7 +119,10 @@ export function LocationSortDropdown({
                 cursor: 'pointer',
                 // marginRight: '5px',
             }}>
-                <components.DownChevron tabIndex={0} size={14} />
+                <components.DownChevron tabIndex={0} size={14} style={{
+                    // boxShadow: 'none',
+                    outline: 'none',
+                }}/>
             </div>
         </div>
     </div>

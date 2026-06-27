@@ -1,3 +1,5 @@
+import { CREATE, type editType } from "../../../../resources/constants"
+
 export default function CreateLocationButton({
     isModalHidden,
     setModalHidden,
@@ -6,7 +8,7 @@ export default function CreateLocationButton({
 }:{
     isModalHidden: boolean,
     setModalHidden: React.Dispatch<React.SetStateAction<boolean>>,
-    setEditMode: (mode: 'VIEW' | 'EDIT' | 'CREATE') => void,
+    setEditMode: (mode:editType) => void,
     setRefreshOnCloseModal: React.Dispatch<React.SetStateAction<boolean>>,
 }) {
     return <>
@@ -26,7 +28,7 @@ export default function CreateLocationButton({
           }}
           onClick={() => {
             // e.stopPropagation() // this stops the clickOut event
-            setEditMode('CREATE')
+            setEditMode(CREATE)
             setRefreshOnCloseModal(false)
             setModalHidden(false)
           }}>

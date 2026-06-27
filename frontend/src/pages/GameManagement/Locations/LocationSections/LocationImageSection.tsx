@@ -70,6 +70,7 @@ export default function LocationImageSection({
                     {/* Image */}
                     <SquareDiv>
                         <img 
+                            tabIndex={0}
                             src={imageUrlInput} 
                             alt={appearanceText}
                             style={{ 
